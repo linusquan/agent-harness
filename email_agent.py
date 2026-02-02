@@ -10,6 +10,8 @@ from typing import Any
 from dotenv import load_dotenv
 import sys
 
+from email_config import EmailConfig
+from imap_util import EmailService
 
 # Configure logging
 logging.basicConfig(
@@ -18,6 +20,7 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 logger = logging.getLogger("agent.hooks")
+
 from claude_agent_sdk import (
     ClaudeSDKClient,
     ClaudeAgentOptions,
@@ -27,10 +30,40 @@ from claude_agent_sdk import (
     TextBlock,
     HookMatcher,
 )
-from imap_util import download_email as imap_download_email, send_email
 
-DOWNLOADS_DIR = os.path.abspath("./downloads")
 
+class EmailAgentConfig:
+    """Configuration for the email processing agent."""
+
+    def __init__(
+        self,
+        downloads_dir: str = "./downloads",
+        email_config: EmailConfig = None,
+    ):
+        self.downloads_dir = os.path.abspath(downloads_dir)
+        self.email_config = email_config or EmailConfig.gmail()
+        self.email_service = EmailService(config=self.email_config)
+
+
+# Module-level config, can be overridden for testing
+_agent_config: EmailAgentConfig | None = None
+
+
+def get_agent_config() -> EmailAgentConfig:
+    """Get or create the agent configuration."""
+    global _agent_config
+    if _agent_config is None:
+        _agent_config = EmailAgentConfig()
+    return _agent_config
+
+
+def set_agent_config(config: EmailAgentConfig) -> None:
+    """Set the agent configuration (for dependency injection/testing)."""
+    global _agent_config
+    _agent_config = config
+
+
+# === Hook Functions ===
 
 async def log_pre_tool_use(input_data, tool_use_id, context):
     """Log all PreToolUse events."""
@@ -51,19 +84,92 @@ async def log_post_tool_use(input_data, tool_use_id, context):
 
 async def restrict_read_to_downloads(input_data, tool_use_id, context):
     """PreToolUse hook: deny Read if file_path is outside downloads folder."""
+    config = get_agent_config()
     file_path = os.path.abspath(input_data["tool_input"].get("file_path", ""))
-    if not file_path.startswith(DOWNLOADS_DIR):
-        logger.warning(f"[DENY] Read blocked: {file_path} outside {DOWNLOADS_DIR}")
+    if not file_path.startswith(config.downloads_dir):
+        logger.warning(f"[DENY] Read blocked: {file_path} outside {config.downloads_dir}")
         return {
             "hookSpecificOutput": {
                 "hookEventName": input_data["hook_event_name"],
                 "permissionDecision": "deny",
-                "permissionDecisionReason": f"Read restricted to {DOWNLOADS_DIR}"
+                "permissionDecisionReason": f"Read restricted to {config.downloads_dir}"
             }
         }
     logger.info(f"[ALLOW] Read permitted: {file_path}")
     return {}
 
+
+# === Email Parsing Utilities ===
+
+class EmailTxtParser:
+    """Parser for email.txt files created by download_email."""
+
+    @staticmethod
+    def parse(email_folder_path: str) -> dict:
+        """Parse email.txt to extract sender address, message ID, and body."""
+        email_txt_path = os.path.join(email_folder_path, "email.txt")
+        result = {
+            "from": None,
+            "from_full": None,
+            "subject": None,
+            "message_id": None,
+            "date": None,
+            "body": None
+        }
+
+        with open(email_txt_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        in_body = False
+        body_lines = []
+
+        for line in lines:
+            if in_body:
+                body_lines.append(line.rstrip())
+            elif line.startswith("From: "):
+                from_value = line[6:].strip()
+                result["from_full"] = from_value
+                if "<" in from_value and ">" in from_value:
+                    result["from"] = from_value.split("<")[1].split(">")[0]
+                else:
+                    result["from"] = from_value
+            elif line.startswith("Subject: "):
+                result["subject"] = line[9:].strip()
+            elif line.startswith("Date: "):
+                result["date"] = line[6:].strip()
+            elif line.startswith("Message-ID: "):
+                result["message_id"] = line[12:].strip()
+            elif line.startswith("=" * 10):
+                in_body = True
+
+        result["body"] = "\n".join(body_lines).strip()
+        return result
+
+
+class ReplyFormatter:
+    """Formats email replies with proper quoting."""
+
+    @staticmethod
+    def format_html(new_text: str, email_info: dict) -> str:
+        """Format reply body as HTML with blockquote for original message."""
+        import html
+        original_body = email_info.get("body", "")
+        escaped_body = html.escape(original_body).replace("\n", "<br>\n")
+        escaped_new_text = html.escape(new_text).replace("\n", "<br>\n")
+
+        date = email_info.get("date", "")
+        from_full = html.escape(email_info.get("from_full", email_info.get("from", "")))
+
+        return f"""<div>{escaped_new_text}</div>
+<br>
+<div>On {date}, {from_full} wrote:</div>
+<blockquote style="margin:0px 0px 0px 0.8ex; border-left:1px solid rgb(204,204,204); padding-left:1ex">
+{escaped_body}
+</blockquote>
+"""
+
+
+# === MCP Tool Functions ===
 
 @tool(
     "download_email",
@@ -71,9 +177,10 @@ async def restrict_read_to_downloads(input_data, tool_use_id, context):
     {"email_id": str}
 )
 async def download_email_tool(args: dict[str, Any]) -> dict[str, Any]:
-    """Wrapper for imap_util.download_email as an MCP tool."""
+    """Wrapper for email service download_email as an MCP tool."""
     try:
-        result = imap_download_email(args["email_id"], "./downloads")
+        config = get_agent_config()
+        result = config.email_service.download_email(args["email_id"], config.downloads_dir)
         return {
             "content": [{
                 "type": "text",
@@ -87,61 +194,6 @@ Use Read tool to view {result['folder_path']}/email.txt for the email content.""
         return {"content": [{"type": "text", "text": f"Error: {e}"}], "is_error": True}
 
 
-def _parse_email_txt(email_folder_path: str) -> dict:
-    """Parse email.txt to extract sender address, message ID, and body."""
-    email_txt_path = os.path.join(email_folder_path, "email.txt")
-    result = {"from": None, "from_full": None, "subject": None, "message_id": None, "date": None, "body": None}
-
-    with open(email_txt_path, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-
-    in_body = False
-    body_lines = []
-
-    for line in lines:
-        if in_body:
-            body_lines.append(line.rstrip())
-        elif line.startswith("From: "):
-            from_value = line[6:].strip()
-            result["from_full"] = from_value
-            # Extract email address from "Name <email>" format
-            if '<' in from_value and '>' in from_value:
-                result["from"] = from_value.split('<')[1].split('>')[0]
-            else:
-                result["from"] = from_value
-        elif line.startswith("Subject: "):
-            result["subject"] = line[9:].strip()
-        elif line.startswith("Date: "):
-            result["date"] = line[6:].strip()
-        elif line.startswith("Message-ID: "):
-            result["message_id"] = line[12:].strip()
-        elif line.startswith("="*10):
-            in_body = True
-
-    result["body"] = "\n".join(body_lines).strip()
-    return result
-
-
-def _format_reply_body_html(new_text: str, email_info: dict) -> str:
-    """Format reply body as HTML with blockquote for original message."""
-    import html
-    original_body = email_info.get("body", "")
-    # Escape HTML and convert newlines to <br>
-    escaped_body = html.escape(original_body).replace("\n", "<br>\n")
-    escaped_new_text = html.escape(new_text).replace("\n", "<br>\n")
-
-    date = email_info.get("date", "")
-    from_full = html.escape(email_info.get("from_full", email_info.get("from", "")))
-
-    return f"""<div>{escaped_new_text}</div>
-<br>
-<div>On {date}, {from_full} wrote:</div>
-<blockquote style="margin:0px 0px 0px 0.8ex; border-left:1px solid rgb(204,204,204); padding-left:1ex">
-{escaped_body}
-</blockquote>
-"""
-
-
 @tool(
     "reply_to_sender",
     "Reply to the original email sender when a request needs clarification or cannot be processed. Use when: unclear instructions, missing attachments, request outside scope.",
@@ -150,22 +202,25 @@ def _format_reply_body_html(new_text: str, email_info: dict) -> str:
 async def reply_to_sender_tool(args: dict[str, Any]) -> dict[str, Any]:
     """Send a reply to the original email sender."""
     try:
-        email_info = _parse_email_txt(args["email_folder_path"])
+        config = get_agent_config()
+        email_info = EmailTxtParser.parse(args["email_folder_path"])
 
         if not email_info["from"]:
-            return {"content": [{"type": "text", "text": "Error: Could not extract sender address from email.txt"}], "is_error": True}
+            return {
+                "content": [{"type": "text", "text": "Error: Could not extract sender address from email.txt"}],
+                "is_error": True
+            }
 
         subject = args["subject"]
         if not subject.lower().startswith("re:"):
             subject = f"Re: {subject}"
 
-        # Format reply with quoted original as HTML
-        html_body = _format_reply_body_html(args["body"], email_info)
+        html_body = ReplyFormatter.format_html(args["body"], email_info)
 
-        result = send_email(
+        result = config.email_service.send_email(
             to=email_info["from"],
             subject=subject,
-            body=args["body"],  # Plain text fallback
+            body=args["body"],
             reply_to_msgid=email_info.get("message_id"),
             html=html_body
         )
@@ -187,7 +242,8 @@ async def reply_to_sender_tool(args: dict[str, Any]) -> dict[str, Any]:
 async def send_completion_report_tool(args: dict[str, Any]) -> dict[str, Any]:
     """Send a completion report to the webmaster."""
     try:
-        email_info = _parse_email_txt(args["email_folder_path"])
+        config = get_agent_config()
+        email_info = EmailTxtParser.parse(args["email_folder_path"])
         original_subject = email_info.get("subject", "Unknown")
         original_sender = email_info.get("from", "Unknown")
 
@@ -213,7 +269,7 @@ Actions Taken:
 This is an automated report from the Email Processing Agent.
 """
 
-        result = send_email(
+        result = config.email_service.send_email(
             to="webmaster@gliding.com.au",
             subject=subject,
             body=body,
@@ -221,7 +277,7 @@ This is an automated report from the Email Processing Agent.
         )
 
         if result["success"]:
-            return {"content": [{"type": "text", "text": f"Completion report sent to webmaster@gliding.com.au"}]}
+            return {"content": [{"type": "text", "text": "Completion report sent to webmaster@gliding.com.au"}]}
         else:
             return {"content": [{"type": "text", "text": f"Failed to send completion report: {result['error']}"}], "is_error": True}
 
@@ -229,11 +285,26 @@ This is an automated report from the Email Processing Agent.
         return {"content": [{"type": "text", "text": f"Error: {e}"}], "is_error": True}
 
 
-async def process_email(email_id: str) -> str:
-    """Download email and return agent's summary."""
+# === Main Processing Function ===
+
+async def process_email(
+    email_id: str,
+    config: EmailAgentConfig = None,
+) -> str:
+    """
+    Download email and return agent's summary.
+
+    Args:
+        email_id: The email ID to process
+        config: Optional agent configuration (for dependency injection)
+    """
     load_dotenv()
     if not os.getenv("ANTHROPIC_API_KEY"):
         raise ValueError("ANTHROPIC_API_KEY not found")
+
+    # Set up configuration
+    if config:
+        set_agent_config(config)
 
     email_server = create_sdk_mcp_server(
         name="email_tools",
@@ -243,22 +314,22 @@ async def process_email(email_id: str) -> str:
 
     options = ClaudeAgentOptions(
         mcp_servers={"email_tools": email_server},
-        setting_sources=["project"],  # Load skills from .claude/skills/
+        setting_sources=["project"],
         allowed_tools=[
             "mcp__email_tools__download_email",
             "mcp__email_tools__reply_to_sender",
             "mcp__email_tools__send_completion_report",
-            "Skill",  # Enable skills (add_documents, database_analysis, service_update)
-            "Read", "Write", "Edit",  # File operations for skills
-            "Glob", "Grep",  # Search tools
-            "Bash",  # Shell commands
+            "Skill",
+            "Read", "Write", "Edit",
+            "Glob", "Grep",
+            "Bash",
         ],
         hooks={
             "PreToolUse": [
-                HookMatcher(hooks=[log_pre_tool_use]),  # Log all tools
+                HookMatcher(hooks=[log_pre_tool_use]),
             ],
             "PostToolUse": [
-                HookMatcher(hooks=[log_post_tool_use])  # Log all results
+                HookMatcher(hooks=[log_post_tool_use])
             ]
         }
     )
@@ -278,7 +349,7 @@ IMPORTANT GUIDELINES:
             if isinstance(message, AssistantMessage):
                 for block in message.content:
                     if isinstance(block, TextBlock):
-                        result_text = block.text  # Keep the last text block as final result
+                        result_text = block.text
 
     return result_text
 
@@ -288,8 +359,7 @@ if __name__ == "__main__":
         print("Usage: python email_agent.py <email_id>")
         sys.exit(1)
 
-    print(f"Processing email: ")
+    print("Processing email: ")
     result = asyncio.run(process_email(sys.argv[1]))
-    # result = asyncio.run(process_email(32565))
     print("\n" + "="*60 + "\nSUMMARY:\n" + "="*60)
     print(result)
