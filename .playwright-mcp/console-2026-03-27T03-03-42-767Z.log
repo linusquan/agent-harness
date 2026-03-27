@@ -1,0 +1,10 @@
+[     149ms] [WARNING] Google Maps JavaScript API has been loaded directly without loading=async. This can result in suboptimal performance. For best-practice loading patterns please see https://goo.gle/js-api-loading @ https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false:336
+[     162ms] [WARNING] google.maps.event.addDomListener() is deprecated, use the standard
+addEventListener() method instead:
+https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener
+The feature will continue to work and there is no plan to decommission
+it. @ https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false:213
+[     171ms] Uncaught InvalidValueError: Map: Expected mapDiv of type HTMLElement but was passed null.
+    at <anonymous> (https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false:203:398)
+    at <anonymous> (https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false:281:277)
+    at initialize (https://gliding.com.au/assets/js/sx-google-map.js:32:12)

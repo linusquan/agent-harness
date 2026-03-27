@@ -1,4 +1,8 @@
 venv
 **/*.pyc
 .DS_STORE
-scgc-monorepo/
+src/
+.artifacts/
+.tmp/
+**/node_modules
+.playwright-mcp
