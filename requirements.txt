@@ -1,3 +1,0 @@
-imapclient
-python-dotenv
-claude-agent-sdk
