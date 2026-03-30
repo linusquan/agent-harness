@@ -1,0 +1,25 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "src",
+      "name": "src (SCGC source)"
+    }
+  ],
+  "settings": {
+    "search.useIgnoreFiles": true,
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/__pycache__": true,
+      "**/.DS_Store": true,
+      "**/venv": true
+    },
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/__pycache__": true,
+      "**/.DS_Store": true
+    }
+  }
+}

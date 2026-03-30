@@ -1,13 +1,8 @@
 {
   "mcpServers": {
     "playwright": {
-      "command": "npx",
-      "args": [
-        "@playwright/mcp@latest",
-        "--headless",
-        "--browser", "chromium",
-        "--output-dir", ".tmp/playwright-site-inspector"
-      ]
+      "type": "sse",
+      "url": "http://host.docker.internal:23001/sse"
     }
   }
 }
