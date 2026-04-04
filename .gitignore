@@ -6,3 +6,6 @@ src/
 .tmp/
 **/node_modules
 .playwright-mcp
+sessions/
+.artifacts/
+*.log

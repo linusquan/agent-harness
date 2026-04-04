@@ -1,5 +1,5 @@
 ---
-name: developer
+name: abcd-developer
 description: Full-stack feature development workflow — reads a spec from .artifacts/specs/, plans the implementation, builds the feature, tests it with Playwright MCP, commits the code, and writes a structured YAML build log to .artifacts/buildlog/. Use this skill whenever the user wants to build a feature from a spec, implement a feature spec, develop against a specification file, run the developer workflow, or mentions building from .artifacts/specs/. Also trigger when the user says "build feature", "implement the spec", "develop feature-XXX", or references a feature spec file.
 ---
 

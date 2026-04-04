@@ -1,5 +1,27 @@
 {
-  "enabledPlugins": {
-    "ui-ux-pro-max@ui-ux-pro-max-skill": true
+  "permissions": {
+    "allow": [
+      "Bash(./scripts/dispatch.sh:*)",
+      "Bash(./scripts/poll.sh:*)",
+      "Bash(echo $HARNESS_MODE:*)",
+      "Read(.artifacts/**)",
+      "Read(roles/**)",
+      "Read(sessions/**)",
+      "Read(coordinator.md)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/on-stop.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
   }
 }
