@@ -28,7 +28,7 @@ cat "$SENTINEL"
 PANE_FILE="$PROJECT_DIR/sessions/$TASK_ID.pane"
 if [ -f "$PANE_FILE" ]; then
   PANE_ID=$(cat "$PANE_FILE")
-  sleep 3
+  sleep 5
   tmux kill-pane -t "$PANE_ID" 2>/dev/null || true
   rm -f "$PANE_FILE"
 fi

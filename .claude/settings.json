@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./.claude/hooks/on-stop.sh",
+            "command": "/Users/liquan/code/SCGC/.claude/hooks/on-stop.sh",
             "timeout": 10
           }
         ]

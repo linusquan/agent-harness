@@ -104,6 +104,17 @@ After builder completes, go back to step 7 (dispatch checker again).
 
 **Circuit breaker**: After 3 build-check cycles for the same slug, STOP and escalate to the user regardless of mode. Say: "This feature has failed evaluation 3 times. Here are the recurring issues: [summary from latest evaluation]. Please advise."
 
+## Task ID Reuse
+
+Prefer reusing the same task ID when dispatching a role for the same slug. This keeps the context of the previous one which may most likely be helpful.
+
+- **Track task IDs**: After each dispatch, record the mapping `<slug>-<role> → <task-id>` (e.g. `add-oauth-planner → planner-kristen`).
+- **Reuse on re-dispatch**: Whenever you dispatch a role for a slug that already has a recorded task ID for that role, pass `--task-id <recorded-id>`. This applies to:
+  - Builder re-dispatches after failed evaluation (already documented above)
+  - Planner re-dispatches when the user requests plan changes
+  - Any repeat dispatch of the same role for the same slug
+- **New ID only when needed**: Only let `dispatch.sh` generate a fresh task ID for the first dispatch of a given role+slug combination.
+
 ## Rules
 
 - **Do NOT make implementation decisions.** You are a dispatcher, not an architect. Pass the user's task description to the planner as-is. Do not add technology choices, architecture opinions, or implementation details. The planner decides HOW to build it. The builder decides the code. You decide WHO to dispatch and WHEN.
