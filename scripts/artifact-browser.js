@@ -157,15 +157,30 @@ const HTML = `<!DOCTYPE html>
   .empty{color:#6c7086;font-style:italic;font-size:.85rem;padding:20px}
   a.dl{color:#89b4fa;text-decoration:none}
   a.dl:hover{text-decoration:underline}
+  #menu-toggle{display:none;background:none;border:none;color:#cdd6f4;font-size:1.4rem;cursor:pointer;padding:4px 8px;line-height:1}
+  #sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9}
+  @media(max-width:640px){
+    #menu-toggle{display:block}
+    #sidebar{position:fixed;left:0;top:0;bottom:0;z-index:10;width:280px;min-width:0;max-width:85vw;resize:none;transform:translateX(-100%);transition:transform .2s ease}
+    #sidebar.open{transform:translateX(0)}
+    #sidebar-overlay.open{display:block}
+    .tree-node .node-row{padding:6px 8px;font-size:.9rem;gap:8px}
+    .upload-btn{padding:4px 10px;font-size:.8rem}
+    #toolbar{padding:8px 12px}
+    #content{padding:12px}
+    #content pre{font-size:.75rem;padding:12px}
+  }
 </style>
 </head>
 <body>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div id="sidebar">
   <h2>Artifacts</h2>
   <div id="tree">Loading…</div>
 </div>
 <div id="main">
   <div id="toolbar">
+    <button id="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
     <span id="current-path" style="flex:1;opacity:.6">Select a file</span>
     <span id="status"></span>
   </div>
@@ -175,6 +190,15 @@ const HTML = `<!DOCTYPE html>
 <script>
 let uploadTarget = null;
 let selectedPath = null;
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
 
 async function loadTree() {
   const res = await fetch('/api/tree');
@@ -241,6 +265,7 @@ function renderNodes(nodes, container) {
         document.querySelectorAll('.node-row.selected').forEach(r => r.classList.remove('selected'));
         row.classList.add('selected');
         openFile(node.path);
+        closeSidebar();
       };
     }
     container.appendChild(div);
@@ -499,8 +524,9 @@ const server = http.createServer((req, res) => {
   res.end('Not Found');
 });
 
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`Artifact browser running at http://localhost:${PORT}`);
+const HOST = process.env.ARTIFACT_BROWSER_HOST || '0.0.0.0';
+server.listen(PORT, HOST, () => {
+  console.log(`Artifact browser running at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
 });
 
 server.on('error', err => {

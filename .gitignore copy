@@ -1,6 +1,0 @@
-node_modules/
-sessions/
-.artifacts/
-.tmp/
-*.log
-.tmp
