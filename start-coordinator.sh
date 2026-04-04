@@ -35,6 +35,23 @@ fi
 
 tmux kill-session -t coordinator 2>/dev/null || true
 
+# ── Start artifact browser ───────────────────────────────────────────────────
+ARTIFACT_BROWSER_PORT="${ARTIFACT_BROWSER_PORT:-28080}"
+node "$PROJECT_DIR/scripts/artifact-browser.js" &
+ARTIFACT_BROWSER_PID=$!
+
+# Give it 500 ms to fail fast (e.g. port already in use)
+sleep 0.5
+if ! kill -0 "$ARTIFACT_BROWSER_PID" 2>/dev/null; then
+  echo "Warning: artifact browser failed to start" >&2
+else
+  echo "Artifact browser started on http://localhost:$ARTIFACT_BROWSER_PORT"
+fi
+
+# Kill the browser when this shell exits (tmux new-session blocks until session ends)
+trap 'kill "$ARTIFACT_BROWSER_PID" 2>/dev/null || true' EXIT
+# ────────────────────────────────────────────────────────────────────────────
+
 tmux new-session -s coordinator -c "$PROJECT_DIR" \
   -e "HARNESS_MODE=$MODE" \
   "claude --model $MODEL --append-system-prompt-file ./coordinator.md"
