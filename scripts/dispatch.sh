@@ -42,15 +42,22 @@ fi
 
 # Validate role
 if [ ! -f "$PROJECT_DIR/roles/$ROLE.md" ]; then
-  echo "Error: no prompt file found at roles/$ROLE.md" >&2
+  echo "Error: no role file found at roles/$ROLE.md" >&2
   exit 1
+fi
+
+# Build claude command — resume if reusing a task ID, otherwise start fresh
+if [[ "${4:-}" == "--task-id" ]]; then
+  CLAUDE_CMD="claude \"$PROMPT\" --model $MODEL --resume $TASK_ID --permission-mode bypassPermissions --append-system-prompt-file ./roles/$ROLE.md"
+else
+  CLAUDE_CMD="claude \"$PROMPT\" --model $MODEL -n $TASK_ID --permission-mode bypassPermissions --append-system-prompt-file ./roles/$ROLE.md"
 fi
 
 # Spawn child session in a horizontal split pane, capture pane ID
 PANE_ID=$(tmux split-window -h -P -F "#{pane_id}" -c "$PROJECT_DIR" \
   -e "HARNESS_TASK_ID=$TASK_ID" \
   -e "HARNESS_ROLE=$ROLE" \
-  "claude \"$PROMPT\" --model $MODEL --name $TASK_ID --permission-mode bypassPermissions --append-system-prompt-file ./roles/$ROLE.md")
+  "$CLAUDE_CMD")
 
 # Save pane ID so poll.sh can close it
 mkdir -p "$PROJECT_DIR/sessions"
