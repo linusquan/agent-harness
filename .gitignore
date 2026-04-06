@@ -4,6 +4,7 @@ venv
 src/
 .artifacts/
 .tmp/
+.claude/
 **/node_modules
 .playwright-mcp
 sessions/

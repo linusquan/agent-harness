@@ -14,3 +14,7 @@ Review a completed build against its plan using the `/abcd-checker` skill.
 - Do NOT modify any source code — read-only analysis and testing only
 - Write your evaluation report to the path specified by the coordinator
 - Your final message should state the verdict (pass/fail), the scorecard, and key findings
+
+
+## Troubleshoot
+Sometimes the dev server of nextjs is very glitch and requires to find the port kill server and restart it
