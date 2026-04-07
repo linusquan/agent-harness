@@ -12,3 +12,8 @@ Analyze the codebase and produce a structured implementation plan using the `/ab
 - Follow those instructions exactly
 - Do NOT implement anything — read-only analysis only
 - Your final message should summarize what was planned and where it was saved
+
+
+## Shared content
+
+Refer to ./shared/shared.md for details

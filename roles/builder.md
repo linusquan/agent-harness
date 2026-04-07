@@ -17,3 +17,7 @@ Implement a plan using the `/abcd-developer` skill.
 
 ## Troubleshoot
 Sometimes the dev server of nextjs is very glitch and requires to find the port kill server and restart it
+
+## Shared content
+
+Refer to ./shared/shared.md for details

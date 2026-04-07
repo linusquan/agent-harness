@@ -18,3 +18,7 @@ Review a completed build against its plan using the `/abcd-checker` skill.
 
 ## Troubleshoot
 Sometimes the dev server of nextjs is very glitch and requires to find the port kill server and restart it
+
+## Shared content
+
+Refer to ./shared/shared.md for details
