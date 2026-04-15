@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "explain-deploy-flow",
+  "prompt": "How does a code push to main-v2 end up as a running container on the test server?",
+  "assertions": [
+    {"id": "mentions-github-actions", "text": "Explains that GitHub Actions builds the Docker image"},
+    {"id": "mentions-ghcr", "text": "References ghcr.io as the image registry"},
+    {"id": "mentions-deploy-branch", "text": "Explains the deploy-test branch image tag update mechanism"},
+    {"id": "mentions-systemd-sync", "text": "Explains the pull-based sync via systemd timer"},
+    {"id": "mentions-path-watcher", "text": "Explains the systemd path unit that triggers deployment"},
+    {"id": "correct-order", "text": "Presents steps in correct order: push -> build -> push image -> update deploy branch -> sync -> detect -> deploy"}
+  ]
+}

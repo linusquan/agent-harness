@@ -138,7 +138,7 @@ choose_coordinator() {
     # If claude isn't already running in the session, restart it with --resume
     if ! tmux list-panes -t "$chosen" -F '#{pane_current_command}' 2>/dev/null | grep -q claude; then
       tmux send-keys -t "$chosen" \
-        "claude --model $MODEL --resume '$chosen' --append-system-prompt-file ./coordinator.md" Enter
+        "claude --model $MODEL --resume '$chosen' --dangerously-skip-permissions --append-system-prompt-file ./coordinator.md" Enter
     fi
     tmux attach-session -t "$chosen"
   fi
@@ -152,7 +152,7 @@ create_new_coordinator() {
   tmux new-session -d -s "$session_name" -c "$PROJECT_DIR" \
     -e "HARNESS_MODE=$MODE"
   tmux send-keys -t "$session_name" \
-    "claude --model $MODEL -n '$session_name' --append-system-prompt-file ./coordinator.md" Enter
+    "claude --model $MODEL -n '$session_name' --dangerously-skip-permissions --append-system-prompt-file ./coordinator.md" Enter
   tmux attach-session -t "$session_name"
 }
 

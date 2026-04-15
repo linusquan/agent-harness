@@ -1,0 +1,10 @@
+{
+  "run_id": "add-secret-without_skill",
+  "expectations": [
+    {"text": "Uses echo -n VALUE | docker secret create webhook_url - pattern", "passed": true, "evidence": "Command: echo -n \"<WEBHOOK_URL_VALUE>\" | docker secret create webhook_url -"},
+    {"text": "All commands target srv3, never srv2", "passed": true, "evidence": "Uses 'ssh srv3'. No mention of srv2."},
+    {"text": "Updates infra-doc/secrets-inventory.md or skill secrets reference with new entry", "passed": true, "evidence": "Lists updating src/infra-doc/secrets-inventory.md AND .artifacts/infra/vps-docker-secrets.md AND create-secrets scripts. More thorough coverage."},
+    {"text": "Does not store actual secret values in any committed file", "passed": true, "evidence": "Uses <WEBHOOK_URL_VALUE> and <VALUE> placeholders throughout."},
+    {"text": "Notes that a stack redeploy is needed for the service to pick up the new secret", "passed": true, "evidence": "Step 3 shows docker stack deploy command. However uses generic 'cd /path/to/stack' instead of the correct path."}
+  ]
+}

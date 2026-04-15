@@ -1,0 +1,45 @@
+{
+  "skill_name": "scgc-infra",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Check what Docker services are running on srv3 and compare the image versions to what's in deploy-test branch",
+      "expected_output": "SSH into srv3, run docker service ls, then compare running image tags against deploy-test/docker-stack.yml in the repo",
+      "files": [],
+      "assertions": [
+        {"id": "knows-ssh-command", "text": "Uses the correct SSH command or alias to connect to srv3"},
+        {"id": "runs-docker-service-ls", "text": "Runs docker service ls or equivalent to list running services"},
+        {"id": "reads-deploy-test-stack", "text": "Reads or references deploy-test/docker-stack.yml for expected versions"},
+        {"id": "compares-versions", "text": "Explicitly compares running vs expected image tags"},
+        {"id": "no-srv2-access", "text": "Does NOT attempt to SSH into srv2 or production"}
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Add a new Docker secret called webhook_url for the nodejs service on srv3",
+      "expected_output": "SSH into srv3, create the secret, and update infra-doc/secrets-inventory.md with the new entry",
+      "files": [],
+      "assertions": [
+        {"id": "correct-create-command", "text": "Uses echo -n VALUE | docker secret create webhook_url - pattern"},
+        {"id": "targets-srv3-only", "text": "All commands target srv3, never srv2"},
+        {"id": "updates-secrets-inventory", "text": "Updates infra-doc/secrets-inventory.md or skill secrets reference with new entry"},
+        {"id": "no-secret-values", "text": "Does not store actual secret values in any committed file"},
+        {"id": "mentions-redeploy", "text": "Notes that a stack redeploy is needed for the service to pick up the new secret"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "How does a code push to main-v2 end up as a running container on the test server?",
+      "expected_output": "Clear explanation of the full CI/CD pipeline: push -> GitHub Actions build -> ghcr.io push -> deploy-test branch update -> systemd sync -> path watcher -> docker stack deploy",
+      "files": [],
+      "assertions": [
+        {"id": "mentions-github-actions", "text": "Explains that GitHub Actions builds the Docker image"},
+        {"id": "mentions-ghcr", "text": "References ghcr.io as the image registry"},
+        {"id": "mentions-deploy-branch", "text": "Explains the deploy-test branch image tag update mechanism"},
+        {"id": "mentions-systemd-sync", "text": "Explains the pull-based sync via systemd timer"},
+        {"id": "mentions-path-watcher", "text": "Explains the systemd path unit that triggers deployment"},
+        {"id": "correct-order", "text": "Presents steps in correct order: push -> build -> push image -> update deploy branch -> sync -> detect -> deploy"}
+      ]
+    }
+  ]
+}

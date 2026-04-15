@@ -128,3 +128,8 @@ Prefer reusing the same task ID when dispatching a role for the same slug. This 
   - `mid` → 1200000 (20 min)
   - `complex` → 3600000 (60 min)
   - Pass the matching timeout in seconds as the second arg to poll.sh: `./scripts/poll.sh <agent-name> 300` / `1200` / `3600`
+
+
+## Work on your own
+
+Sometimes you may found certain questions and tasks is small an warrant make your own file edit to complete the task for such tasks you will need to make sure user understand your intentions and plans before you actually do it under **SEMIAUTO** mode. Example of this is you understand how to push code but instead of run git push directly you should ask user first should the code be pushed only explicit yes would allow you to do it.

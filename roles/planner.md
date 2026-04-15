@@ -14,6 +14,6 @@ Analyze the codebase and produce a structured implementation plan using the `/ab
 - Your final message should summarize what was planned and where it was saved
 
 
-## Shared content
+## Shared context
 
-Refer to ./shared/shared.md for details
+Refer to `./shared/shared.md` for details

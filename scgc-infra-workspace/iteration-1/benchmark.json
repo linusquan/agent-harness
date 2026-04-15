@@ -1,0 +1,90 @@
+{
+  "metadata": {
+    "skill_name": "scgc-infra",
+    "skill_path": "/Users/liquan/code/SCGC/src/.claude/skills/scgc-infra",
+    "executor_model": "claude-sonnet-4-6",
+    "timestamp": "2026-04-14T13:15:00Z",
+    "evals_run": ["check-services", "add-secret", "explain-deploy-flow"],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_name": "check-services",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "passed": 5,
+      "total": 5,
+      "time_seconds": 35.5,
+      "tokens": 18390
+    },
+    {
+      "eval_name": "check-services",
+      "configuration": "without_skill",
+      "pass_rate": 1.0,
+      "passed": 5,
+      "total": 5,
+      "time_seconds": 47.1,
+      "tokens": 22192
+    },
+    {
+      "eval_name": "add-secret",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "passed": 5,
+      "total": 5,
+      "time_seconds": 57.9,
+      "tokens": 20478
+    },
+    {
+      "eval_name": "add-secret",
+      "configuration": "without_skill",
+      "pass_rate": 1.0,
+      "passed": 5,
+      "total": 5,
+      "time_seconds": 43.9,
+      "tokens": 19805
+    },
+    {
+      "eval_name": "explain-deploy-flow",
+      "configuration": "with_skill",
+      "pass_rate": 1.0,
+      "passed": 6,
+      "total": 6,
+      "time_seconds": 96.1,
+      "tokens": 21970
+    },
+    {
+      "eval_name": "explain-deploy-flow",
+      "configuration": "without_skill",
+      "pass_rate": 1.0,
+      "passed": 6,
+      "total": 6,
+      "time_seconds": 69.8,
+      "tokens": 30796
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "mean_pass_rate": 1.0,
+      "mean_time_seconds": 63.2,
+      "mean_tokens": 20279
+    },
+    "without_skill": {
+      "mean_pass_rate": 1.0,
+      "mean_time_seconds": 53.6,
+      "mean_tokens": 24264
+    },
+    "delta": {
+      "pass_rate": "+0.00",
+      "time_seconds": "+9.6",
+      "tokens": "-3985"
+    }
+  },
+  "notes": [
+    "All assertions pass for both configurations — the quantitative pass rate is tied at 100%.",
+    "The with-skill runs use fewer tokens on average (-3985), especially for explain-deploy-flow (21970 vs 30796) where the skill provided architecture context directly instead of needing 24 tool calls to discover it.",
+    "The with-skill runs are slower on wall-clock time on average (+9.6s), likely due to reading the skill file adding overhead.",
+    "The qualitative differences are more interesting: the with-skill add-secret run actually modified infra-doc files (documentation protocol), while the baseline only described what to do. The with-skill check-services run was faster but may have compared against the server's copy of deploy-test rather than the git branch, missing a potential mismatch the baseline caught.",
+    "The explain-deploy-flow outputs are comparable in quality, but the with-skill version is significantly more detailed (136 lines vs 90 lines) and includes design decisions and timing estimates."
+  ]
+}
