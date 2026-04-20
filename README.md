@@ -2,7 +2,7 @@
 
 **A**rchitect. **B**uild. **C**heck. **D**eploy.
 
-A multi-agent orchestration harness for Claude Code. A central coordinator dispatches specialised Claude Code sessions via tmux — each with its own role, model, and skills — then loops until the feature passes evaluation.
+A multi-agent orchestration harness for Claude Code or Codex. A central coordinator dispatches specialised agent sessions via tmux, then loops until the feature passes evaluation.
 
 ```
                  ┌──────────────┐
@@ -28,7 +28,7 @@ A multi-agent orchestration harness for Claude Code. A central coordinator dispa
 
 ## Prerequisites
 
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
+- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) or `codex`
 - [tmux](https://github.com/tmux/tmux)
 - Node.js (for agent name generation)
 
@@ -39,13 +39,14 @@ npm install
 ## Quick Start
 
 ```bash
-# Start the coordinator (default: sonnet, semiauto mode)
+# Start the coordinator (default: sonnet, semiauto mode, Claude backend)
 ./start-coordinator.sh
 
 # Or customise
 ./start-coordinator.sh --mode auto              # no approval checkpoints
 ./start-coordinator.sh --model opus              # use opus for coordinator
 ./start-coordinator.sh --mode auto --model opus  # both
+./start-coordinator.sh --agentbase codex         # use Codex instead of Claude
 ```
 
 Once inside the coordinator session, give it a task:
@@ -75,7 +76,7 @@ Switch modes mid-session by typing `auto` or `semiauto`.
 
 ### `dispatch.sh`
 
-Spawn a child Claude Code session.
+Spawn a child agent session.
 
 ```bash
 ./scripts/dispatch.sh <role> <complexity> <prompt> [--task-id <id>]
@@ -84,6 +85,9 @@ Spawn a child Claude Code session.
 - `complexity`: `simple` (haiku), `mid` (sonnet), `complex` (opus)
 - `--task-id`: reuse an existing task ID (for re-dispatch after failed check)
 - Auto-generates a friendly name (e.g. `planner-kristen`, `builder-destiny`)
+- Backend comes from `HARNESS_AGENTBASE` set by `start-coordinator.sh`
+- For `codex`, completion signaling uses the repo-local `Stop` hook in `.codex/hooks.json`
+- For `codex`, child panes are interactive sessions; `poll.sh` closes the pane after the `Stop` hook writes the sentinel
 
 ### `poll.sh`
 
@@ -104,4 +108,3 @@ Wipe runtime state for a fresh test.
 ```bash
 ./cleanup.sh
 ```
-

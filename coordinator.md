@@ -65,10 +65,23 @@ Read `.artifacts/plans/<slug>/plan.md`. Summarize it for the user.
 ./scripts/poll.sh <agent-name>
 ```
 
-### 7. Dispatch the checker
+### 7. Dispatch the checker (cross-pollinate)
+
+**Cross-pollination rule**: The checker MUST use a different agentbase than the builder. This ensures independent verification — code built by one AI is reviewed by a different one.
+
+- Check `$HARNESS_AGENTBASE` (run `echo $HARNESS_AGENTBASE`) to know the session default.
+- If the builder used the session default (claude or codex), dispatch the checker with the opposite via `--agentbase`:
+
 ```bash
-./scripts/dispatch.sh checker <complexity> "Evaluate build for <slug>. Plan: .artifacts/plans/<slug>/plan.md. Build log: .artifacts/buildlog/<slug>.yaml. Write evaluation to .artifacts/evaluations/<slug>.yaml"
+# If session default is claude → builder used claude → checker uses codex
+./scripts/dispatch.sh checker <complexity> "Evaluate build for <slug>. Plan: .artifacts/plans/<slug>/plan.md. Build log: .artifacts/buildlog/<slug>.yaml. Write evaluation to .artifacts/evaluations/<slug>.yaml" --agentbase codex
+
+# If session default is codex → builder used codex → checker uses claude
+./scripts/dispatch.sh checker <complexity> "Evaluate build for <slug>. Plan: .artifacts/plans/<slug>/plan.md. Build log: .artifacts/buildlog/<slug>.yaml. Write evaluation to .artifacts/evaluations/<slug>.yaml" --agentbase claude
 ```
+
+If the builder was dispatched with an explicit `--agentbase` override, use the opposite of THAT for the checker.
+
 Prefer `complex` for evaluation — thorough review matters.
 
 ### 8. Wait for the checker to finish
@@ -100,7 +113,7 @@ Re-dispatch the builder with feedback, reusing the same task ID:
 ```bash
 ./scripts/dispatch.sh builder <complexity> "Fix issues in <slug>. Original plan: .artifacts/plans/<slug>/plan.md. Evaluation feedback: <feedbackForBuilder text>. Write updated build log to .artifacts/buildlog/<slug>.yaml." --task-id <original-builder-task-id>
 ```
-After builder completes, go back to step 7 (dispatch checker again).
+After builder completes, go back to step 7 (dispatch checker again — cross-pollination still applies).
 
 **Circuit breaker**: After 3 build-check cycles for the same slug, STOP and escalate to the user regardless of mode. Say: "This feature has failed evaluation 3 times. Here are the recurring issues: [summary from latest evaluation]. Please advise."
 
@@ -108,7 +121,7 @@ After builder completes, go back to step 7 (dispatch checker again).
 
 Prefer reusing the same task ID when dispatching a role for the same slug. This keeps the context of the previous one which may most likely be helpful.
 
-- **Track task IDs**: After each dispatch, record the mapping `<slug>-<role> → <task-id>` (e.g. `add-oauth-planner → planner-kristen`).
+- **Track task IDs and agentbase**: After each dispatch, record the mapping `<slug>-<role> → <task-id> (agentbase)` (e.g. `add-oauth-builder → builder-kristen (claude)`).
 - **Reuse on re-dispatch**: Whenever you dispatch a role for a slug that already has a recorded task ID for that role, pass `--task-id <recorded-id>`. This applies to:
   - Builder re-dispatches after failed evaluation (already documented above)
   - Planner re-dispatches when the user requests plan changes
@@ -129,6 +142,21 @@ Prefer reusing the same task ID when dispatching a role for the same slug. This 
   - `complex` → 3600000 (60 min)
   - Pass the matching timeout in seconds as the second arg to poll.sh: `./scripts/poll.sh <agent-name> 300` / `1200` / `3600`
 
+
+## Push Notifications
+
+When pausing for user input, always send a push notification first so the user knows action is needed. Call:
+
+```bash
+./scripts/notify.sh coordinator "<short message>" "<title>"
+```
+
+Send a notification in these situations:
+- **SEMIAUTO checkpoint** (after planner, builder, or checker): `./scripts/notify.sh coordinator "Plan ready — approve to build?"`
+- **Circuit breaker triggered**: `./scripts/notify.sh coordinator "Build failed 3x — your input needed"`
+- **Child session error**: `./scripts/notify.sh coordinator "Agent failed — check terminal"`
+
+Do NOT notify for completions (planner/builder/checker finishing) — `poll.sh` handles those automatically. Only notify when YOU need the user to respond.
 
 ## Work on your own
 

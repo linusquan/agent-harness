@@ -22,7 +22,14 @@ while [ ! -f "$SENTINEL" ]; do
   elapsed=$((elapsed + 3))
 done
 
-cat "$SENTINEL"
+SENTINEL_CONTENT=$(cat "$SENTINEL")
+echo "$SENTINEL_CONTENT"
+
+# Send push notification — extract role from sentinel JSON
+ROLE=$(echo "$SENTINEL_CONTENT" | jq -r '.role // "agent"')
+TASK_ID=$(echo "$SENTINEL_CONTENT" | jq -r '.task_id // "unknown"')
+ROLE_TITLE=$(echo "$ROLE" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+"$(dirname "$0")/notify.sh" "$ROLE" "$TASK_ID finished" "$ROLE_TITLE done" 2>/dev/null || true
 
 # Close the child pane after a short delay
 PANE_FILE="$PROJECT_DIR/sessions/$TASK_ID.pane"

@@ -1,11 +1,12 @@
 #!/bin/bash
-# Start the central coordinator Claude Code session
-# Usage: ./start-coordinator.sh [--mode auto|semiauto] [--model <model>]
+# Start the central coordinator agent session
+# Usage: ./start-coordinator.sh [--mode auto|semiauto] [--model <model>] [--agentbase claude|codex]
 set -euo pipefail
 
 # ── Defaults ──
 MODE="semiauto"
 MODEL="sonnet"
+AGENTBASE="${HARNESS_AGENTBASE:-claude}"
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -15,6 +16,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --mode)   MODE="$2"; shift 2 ;;
     --model)  MODEL="$2"; shift 2 ;;
+    --agentbase) AGENTBASE="$2"; shift 2 ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
   esac
 done
@@ -24,7 +26,59 @@ if [[ "$MODE" != "auto" && "$MODE" != "semiauto" ]]; then
   exit 1
 fi
 
+if [[ "$AGENTBASE" != "claude" && "$AGENTBASE" != "codex" ]]; then
+  echo "Error: --agentbase must be 'claude' or 'codex'" >&2
+  exit 1
+fi
+
 # ── Functions ────────────────────────────────────────────────────────────────
+
+resolve_model() {
+  local runtime="$1"
+  local requested="$2"
+
+  if [[ "$runtime" == "codex" ]]; then
+    case "$requested" in
+      haiku|sonnet) echo "gpt-5.4-mini" ;;
+      opus) echo "gpt-5.4" ;;
+      *) echo "$requested" ;;
+    esac
+  else
+    echo "$requested"
+  fi
+}
+
+runtime_command_name() {
+  if [[ "$1" == "codex" ]]; then
+    echo "codex"
+  else
+    echo "claude"
+  fi
+}
+
+start_runtime_in_session() {
+  local session_name="$1"
+  local runtime="$2"
+  local model="$3"
+  local resolved_model
+  resolved_model=$(resolve_model "$runtime" "$model")
+
+  if [[ "$runtime" == "codex" ]]; then
+    local session_id_file="$PROJECT_DIR/sessions/$session_name.codex-session"
+    if [[ -f "$session_id_file" ]]; then
+      local resume_session_id
+      resume_session_id=$(cat "$session_id_file")
+      tmux send-keys -t "$session_name" \
+        "./scripts/run-codex-interactive.sh '$session_name' '$resolved_model' ./coordinator.md --resume-session '$resume_session_id'" Enter
+    else
+      tmux send-keys -t "$session_name" \
+        "./scripts/run-codex-interactive.sh '$session_name' '$resolved_model' ./coordinator.md" Enter
+    fi
+  else
+    tmux send-keys -t "$session_name" \
+      "claude --model $resolved_model -n '$session_name' --append-system-prompt-file ./coordinator.md" Enter
+  fi
+}
 
 start_artifact_browser() {
   local port="${ARTIFACT_BROWSER_PORT:-28080}"
@@ -135,10 +189,24 @@ choose_coordinator() {
   else
     local chosen="${options[$selected]}"
     echo "Resuming session: $chosen"
-    # If claude isn't already running in the session, restart it with --resume
-    if ! tmux list-panes -t "$chosen" -F '#{pane_current_command}' 2>/dev/null | grep -q claude; then
-      tmux send-keys -t "$chosen" \
-        "claude --model $MODEL --resume '$chosen' --dangerously-skip-permissions --append-system-prompt-file ./coordinator.md" Enter
+    local session_agentbase="$AGENTBASE"
+    local session_env
+    session_env=$(tmux show-environment -t "$chosen" HARNESS_AGENTBASE 2>/dev/null || true)
+    if [[ "$session_env" == HARNESS_AGENTBASE=* ]]; then
+      session_agentbase="${session_env#HARNESS_AGENTBASE=}"
+    fi
+
+    local runtime_cmd
+    runtime_cmd=$(runtime_command_name "$session_agentbase")
+    if ! tmux list-panes -t "$chosen" -F '#{pane_current_command}' 2>/dev/null | grep -q "^${runtime_cmd}$"; then
+      if [[ "$session_agentbase" == "codex" ]]; then
+        start_runtime_in_session "$chosen" "$session_agentbase" "$MODEL"
+      else
+        local resolved_model
+        resolved_model=$(resolve_model "$session_agentbase" "$MODEL")
+        tmux send-keys -t "$chosen" \
+          "claude --model $resolved_model --resume '$chosen' --append-system-prompt-file ./coordinator.md" Enter
+      fi
     fi
     tmux attach-session -t "$chosen"
   fi
@@ -150,9 +218,9 @@ create_new_coordinator() {
 
   echo "Creating session: $session_name (detach with Ctrl+b d to keep it alive)"
   tmux new-session -d -s "$session_name" -c "$PROJECT_DIR" \
-    -e "HARNESS_MODE=$MODE"
-  tmux send-keys -t "$session_name" \
-    "claude --model $MODEL -n '$session_name' --dangerously-skip-permissions --append-system-prompt-file ./coordinator.md" Enter
+    -e "HARNESS_MODE=$MODE" \
+    -e "HARNESS_AGENTBASE=$AGENTBASE"
+  start_runtime_in_session "$session_name" "$AGENTBASE" "$MODEL"
   tmux attach-session -t "$session_name"
 }
 
