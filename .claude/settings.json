@@ -1,0 +1,49 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./scripts/dispatch.sh:*)",
+      "Bash(./scripts/poll.sh:*)",
+      "Bash(echo $HARNESS_MODE:*)",
+      "Read(.artifacts/**)",
+      "Read(roles/**)",
+      "Read(sessions/**)",
+      "Read(coordinator.md)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/guard-docker-stack.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/guard-docker-stack.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/on-stop.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

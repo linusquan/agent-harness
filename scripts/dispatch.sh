@@ -112,9 +112,9 @@ if [[ "$AGENTBASE" == "codex" ]]; then
 else
   # Build claude command — resume if reusing a task ID, otherwise start fresh
   if [[ "$REUSE_TASK" == "true" ]]; then
-    AGENT_CMD="claude \"$PROMPT\" --model $MODEL --resume $TASK_ID --append-system-prompt-file ./roles/$ROLE.md"
+    AGENT_CMD="claude \"$PROMPT\" --model $MODEL --resume $TASK_ID --append-system-prompt-file ./roles/$ROLE.md --dangerously-skip-permissions"
   else
-    AGENT_CMD="claude \"$PROMPT\" --model $MODEL -n $TASK_ID --append-system-prompt-file ./roles/$ROLE.md"
+    AGENT_CMD="claude \"$PROMPT\" --model $MODEL -n $TASK_ID --append-system-prompt-file ./roles/$ROLE.md --dangerously-skip-permissions"
   fi
 fi
 

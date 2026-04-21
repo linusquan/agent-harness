@@ -53,7 +53,7 @@ The new server mirrors `srv3` (test) in setup but differs in: domain, SSL certs,
 - Hostname: `srv4.gliding.com.au` (set in panel)
 - Panel: https://home.binarylane.com.au
 
-Record the new IP here: **`___.___.___.___ `**
+Record the new IP here: **`110.232.114.112`**
 
 After provisioning, set reverse DNS in BinaryLane panel → `srv4.gliding.com.au`.
 
