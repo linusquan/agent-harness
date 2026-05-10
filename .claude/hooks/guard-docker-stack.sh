@@ -14,8 +14,17 @@ if [[ "$FILE_PATH" != *"docker-stack.yml"* ]] && [[ "$FILE_PATH" != *"docker-sta
   exit 0
 fi
 
+# Only guard the primary worktree (project src/). Other worktrees — e.g. a
+# temporary /tmp/... checkout of deploy-test/deploy-prod — are by definition
+# already on a deploy branch and should be allowed through.
+PROJECT_SRC="${CLAUDE_PROJECT_DIR:-/Users/liquan/code/SCGC}/src"
+case "$FILE_PATH" in
+  "$PROJECT_SRC"/*) ;;   # inside primary worktree — continue checking
+  *) exit 0 ;;            # other worktree — allow
+esac
+
 # Check current branch
-CURRENT_BRANCH=$(cd "${CLAUDE_PROJECT_DIR:-/Users/liquan/code/SCGC}/src" && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+CURRENT_BRANCH=$(cd "$PROJECT_SRC" && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
 
 if [[ "$CURRENT_BRANCH" == "main-v2" ]] || [[ "$CURRENT_BRANCH" == "main" ]]; then
   cat <<EOF

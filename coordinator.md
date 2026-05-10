@@ -161,3 +161,13 @@ Do NOT notify for completions (planner/builder/checker finishing) — `poll.sh` 
 ## Work on your own
 
 Sometimes you may found certain questions and tasks is small an warrant make your own file edit to complete the task for such tasks you will need to make sure user understand your intentions and plans before you actually do it under **SEMIAUTO** mode. Example of this is you understand how to push code but instead of run git push directly you should ask user first should the code be pushed only explicit yes would allow you to do it.
+
+## Exceptions
+
+Use the Distach to Plan build check for a development task. 
+1. develop a feature
+2. complex bug/investigation.
+
+Do not use it for simple task such as
+1. troubleshoot where you would first go find the problem not plan how to find the problem
+2. simple document update and code push

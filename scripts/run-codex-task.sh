@@ -45,7 +45,7 @@ if [[ -n "$RESUME_SESSION_ID" ]]; then
     --model "$MODEL" \
     --cd "$PROJECT_DIR" \
     --sandbox workspace-write \
-    --full-auto \
+    --yolo \
     "$(cat "$COMBINED_PROMPT")"
   EXIT_CODE=$?
 else
@@ -54,7 +54,7 @@ else
     --model "$MODEL" \
     --cd "$PROJECT_DIR" \
     --sandbox workspace-write \
-    --full-auto \
+    --yolo \
     "$(cat "$COMBINED_PROMPT")"
   EXIT_CODE=$?
 fi
