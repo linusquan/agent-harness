@@ -1,11 +1,12 @@
 # Coordinator
 
-The live coordinator agent is [`.claude/agents/coordinator.md`](.claude/agents/coordinator.md).
+The main session **is** the coordinator. Open this repository in Claude Code or Cursor Agent and give it a task — no special entrypoint needed.
 
-Start it with:
+Live spec (keep these in sync):
 
-```bash
-./start-coordinator.sh
-```
+- [`CLAUDE.md`](CLAUDE.md) — Claude Code project instructions
+- [`AGENTS.md`](AGENTS.md) — Cursor-native project instructions
 
-That launches Claude Code as `claude --agent coordinator`. The coordinator delegates to project subagents (`planner`, `builder`, `checker`) via the Agent tool. It does not run `dispatch.sh` or `poll.sh`.
+`.claude/agents/coordinator.md` is a thin alias so `claude --agent coordinator` and `./start-coordinator.sh` still work. Prefer opening the project.
+
+Working subagents are only `planner`, `builder`, and `checker`. The coordinator does not run `dispatch.sh` or `poll.sh`.

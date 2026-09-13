@@ -1,0 +1,176 @@
+feature: "cursor-port-smoke"
+evaluatedAt: "2026-09-13T23:12:00Z"
+verdict: pass
+
+criteria:
+  specConformance:
+    score: 10
+    maxScore: 10
+    findings: |
+      Every step of both plan phases is implemented, and all seven of the plan's
+      own verification items were re-checked independently and pass.
+
+      Phase 1: `.artifacts/` exists; `.artifacts/VERIFY.md` was created with a
+      top-level `# Cursor Port Smoke Test` heading plus two lines of placeholder
+      copy identifying it as a stub for the Cursor port of the plan -> build ->
+      check harness (240 bytes). Step 1.3's negative requirement holds: no `src/`
+      directory exists, `.gitignore` is byte-identical to HEAD (`git diff HEAD
+      -- .gitignore` empty), and nothing under `.cursor/` or `.claude/` moved.
+
+      Phase 2: `.artifacts/buildlog/cursor-port-smoke.yaml` exists and parses as
+      YAML. `commitHash` and `commitMessage` are both explicitly `null` rather
+      than a fabricated hash, and `notes` states the reason (the deliverable is
+      gitignored). The Playwright-not-applicable skip is recorded as Step 2.3
+      required. `git status --short` is empty.
+
+      The plan's most important constraint -- scope fenced to `.artifacts/` only
+      -- is fully respected. `git status --short --ignored` shows `!! .artifacts/`
+      as the sole entry, and `git ls-files --others --exclude-standard` is empty,
+      so the build created no untracked non-ignored files anywhere in the repo.
+      The two documented over-delivery risks (scaffolding `src/`, or force-adding
+      the ignored file / editing `.gitignore`) both did not occur.
+
+      The file sits directly at `.artifacts/VERIFY.md` and not nested deeper; a
+      `find .artifacts -name VERIFY.md` returns exactly one path.
+    issues: []
+
+  functionalCompleteness:
+    score: 9
+    maxScore: 10
+    findings: |
+      Playwright MCP was not available in this environment (no Playwright
+      namespace; the Browser-use MCP server failed live tool discovery), and the
+      task has no application UI in scope -- there is no `package.json`, no dev
+      server, and no `src/` tree. Rather than declare functional testing
+      inapplicable, testing was done two ways: filesystem/git-level assertions,
+      and through the repo's own `scripts/artifact-browser.js` HTTP server, which
+      serves `.artifacts/` and is the only real consumer of this deliverable. The
+      server was started on port 28080, exercised, then shut down; the working
+      tree was re-confirmed clean afterwards.
+
+      Happy path and all edge/error cases pass. The stub is discoverable in the
+      served tree listing alongside `plans/` and `buildlog/`, and its full
+      content renders correctly through the file endpoint including the unicode
+      arrow. The one point withheld reflects evidence modality -- verification is
+      HTTP- and filesystem-level rather than a rendered browser flow -- not any
+      observed defect in the build.
+    tests:
+      - id: "FT-01"
+        type: happy-path
+        description: ".artifacts/VERIFY.md exists, is non-empty (240 bytes), opens as valid Markdown with a level-1 heading on line 1, and sits directly under .artifacts/"
+        result: pass
+      - id: "FT-02"
+        type: happy-path
+        description: "Artifact browser served the stub: GET /api/tree lists VERIFY.md at the root alongside buildlog/ and plans/, and GET /api/file?path=VERIFY.md returns the full stub text intact"
+        result: pass
+      - id: "FT-03"
+        type: happy-path
+        description: "Build log parses as YAML with all nine expected top-level keys (feature, description, filesChanged, mainImplementationStrategy, assumptionsMade, testsPerformed, commitHash, commitMessage, notes)"
+        result: pass
+      - id: "FT-04"
+        type: edge-case
+        description: "git status --short is empty and git diff HEAD --stat is empty -- no tracked file changed and the stub never became stageable"
+        result: pass
+      - id: "FT-05"
+        type: edge-case
+        description: "git check-ignore -v .artifacts/VERIFY.md still reports .gitignore:10:.artifacts/, confirming the ignore rule was not subverted"
+        result: pass
+      - id: "FT-06"
+        type: edge-case
+        description: "Scope fence: no src/ directory created, .gitignore unchanged vs HEAD, and git ls-files --others --exclude-standard returns nothing"
+        result: pass
+      - id: "FT-07"
+        type: error-handling
+        description: "git add --dry-run .artifacts/VERIFY.md is rejected with exit 1 and the ignored-path hint, and the index is unchanged afterwards -- the file cannot be accidentally staged"
+        result: pass
+      - id: "FT-08"
+        type: error-handling
+        description: "Artifact browser error paths behave with the stub in place: traversal attempt (path=../.gitignore) returns 403, nonexistent file returns 404, missing path param returns 400"
+        result: pass
+
+  codeQuality:
+    score: 9
+    maxScore: 10
+    findings: |
+      The deliverable is four lines of Markdown, and it is the right four lines:
+      a descriptive H1, one sentence saying what the file is, one sentence saying
+      why it exists. Wording matches the plan's "short, human-readable
+      placeholder content that states what the file is for" and matches the
+      repo's existing prose register in `README.md` and `CLAUDE.md`. Backticks
+      are used correctly around the `.artifacts/` path, there is no dead or
+      commented-out content, and no boilerplate was padded in to look
+      substantial. The build log is well-formed, consistently indented, and uses
+      the exact schema and enum values documented in the `abcd-developer` skill
+      (including `type: non-happy-path`, which is the skill's own vocabulary).
+      No error handling or abstraction concerns apply to a static Markdown stub.
+    issues: []
+
+  security:
+    score: 10
+    maxScore: 10
+    findings: |
+      No security exposure. The change contains no code, no credentials, no
+      tokens, no URLs, and no user input path -- it is static prose. Nothing was
+      written outside `.artifacts/`, and no dependency, script, or permission was
+      touched.
+
+      Notably, the build resisted the two ways this task could have created a
+      real problem: it did not `git add -f` a gitignored path, and it did not
+      relax `.gitignore`. Either would have started leaking the untracked
+      `.artifacts/` working area (which holds agent plans and logs) into version
+      control. `git check-ignore` and a byte-level `.gitignore` comparison both
+      confirm the containment is intact.
+    issues: []
+
+  performance:
+    score: 10
+    maxScore: 10
+    findings: |
+      Not a meaningful axis here and nothing to fault: one 240-byte file write
+      and one build-log write. No queries, loops, recursion, network calls, or
+      blocking operations were introduced. The build correctly declined to start
+      a dev server or a browser session, avoiding work the task did not need.
+    issues: []
+
+  buildLogAccuracy:
+    score: 10
+    maxScore: 10
+    findings: |
+      The build log matches reality on every checkable claim.
+
+      filesChanged lists exactly one entry, `.artifacts/VERIFY.md` with
+      `action: created`, and its summary ("heading and two lines") matches the
+      file byte for byte. No undeclared changes exist -- the clean `git status`
+      plus the empty untracked-file listing means the log is not omitting
+      anything.
+
+      All three claimed tests were re-run and all three genuinely pass: T-01
+      (file exists, non-empty, valid Markdown with heading, correct location),
+      T-02 (`git status --short` empty), and T-03 (`git check-ignore` still
+      matches `.gitignore:10`, `.gitignore` unchanged vs HEAD, no `src/`). No
+      claimed-pass test failed on re-run.
+
+      commitHash and commitMessage are `null` with the reason stated in `notes`,
+      exactly as Phase 2 Step 2.2 demanded, so no hash was invented. The three
+      documented assumptions are accurate: `.artifacts/plans/` did pre-exist from
+      the planner, the stub wording was left to the builder by the plan, and null
+      commit fields were the plan's explicit instruction. The "no pre-existing
+      VERIFY.md, so this was a create not an overwrite" note is consistent with
+      the single VERIFY.md found and its creation timestamp (23:04:37), which
+      falls between the planner's output and the build log write (23:04:45).
+
+scorecard:
+  total: 58
+  maxTotal: 60
+  passingThreshold: 7
+  failedCriteria: []
+
+issues: []
+
+summary: |
+  Pass at 58/60. The build did exactly the minimal thing the plan asked for --
+  a four-line gitignored Markdown stub at .artifacts/VERIFY.md -- and, more
+  importantly for a harness smoke test, it respected every negative constraint:
+  clean git tree, .gitignore untouched, no src/ scaffolding, no force-add, no
+  fabricated commit hash. The build log is accurate on every claim, and all
+  three of its self-reported tests pass on independent re-run.

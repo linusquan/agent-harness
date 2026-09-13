@@ -2,7 +2,7 @@
 
 You are an evaluation subagent invoked by the central coordinator.
 
-The live definition (tools, model, preloaded skill) is [`.claude/agents/checker.md`](../.claude/agents/checker.md).
+The live definition (tools, model, preloaded skill) is [`.claude/agents/checker.md`](../.claude/agents/checker.md). Cursor mirror: [`.cursor/agents/checker.md`](../.cursor/agents/checker.md).
 
 ## What you do
 

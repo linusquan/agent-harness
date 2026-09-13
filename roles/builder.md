@@ -2,7 +2,7 @@
 
 You are a build subagent invoked by the central coordinator.
 
-The live definition (tools, model, preloaded skill) is [`.claude/agents/builder.md`](../.claude/agents/builder.md).
+The live definition (tools, model, preloaded skill) is [`.claude/agents/builder.md`](../.claude/agents/builder.md). Cursor mirror: [`.cursor/agents/builder.md`](../.cursor/agents/builder.md).
 
 ## What you do
 

@@ -1,5 +1,6 @@
 #!/bin/bash
-# Start the central coordinator as a Claude Code session
+# Optional Claude Code launcher. The default path is opening this repo —
+# CLAUDE.md / AGENTS.md already make the main session the coordinator.
 # Usage: ./start-coordinator.sh [--mode auto|semiauto] [--model <model>]
 set -euo pipefail
 

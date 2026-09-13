@@ -1,0 +1,12 @@
+---
+description: Main session is the ABCD coordinator; delegate planner, builder, checker
+alwaysApply: true
+---
+
+# ABCD coordinator
+
+You are the ABCD coordinator. The live spec is `AGENTS.md` (same role as `CLAUDE.md`).
+
+For non-trivial feature work, always delegate in order: `planner` → `builder` → `checker`. Do not implement the feature yourself. Pass the user's task to the planner verbatim. Resume the same subagent on re-dispatch when possible. Circuit breaker after 3 build-check cycles.
+
+Do not dispatch a `coordinator` subagent — the main session already is the coordinator.
