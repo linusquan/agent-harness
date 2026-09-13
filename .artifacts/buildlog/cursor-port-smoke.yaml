@@ -1,0 +1,45 @@
+feature: "cursor-port-smoke"
+description: "Created a gitignored Markdown stub at .artifacts/VERIFY.md to smoke-test the Cursor-ported plan → build → check harness."
+
+filesChanged:
+  - path: ".artifacts/VERIFY.md"
+    action: created
+    summary: "Smoke-test stub with a heading and two lines identifying it as a Cursor-port harness placeholder"
+
+mainImplementationStrategy: |
+  Followed the plan's override of the default abcd-developer workflow: created
+  only .artifacts/VERIFY.md with a top-level heading and short placeholder copy.
+  Did not scaffold src/, start a server, run Playwright, edit .gitignore, or
+  force-add the ignored file. The build log itself is the only other write,
+  which the plan explicitly allows as a required builder-contract side effect.
+
+assumptionsMade:
+  - "Assumed .artifacts/ already existing from the planner (plans/ present) was fine; only VERIFY.md needed to be created."
+  - "Assumed stub wording could be chosen freely as long as it is short Markdown with a heading and identifies the Cursor-port smoke test."
+  - "Assumed commitHash and commitMessage should be null rather than omitted, per Phase 2 Step 2.2."
+
+testsPerformed:
+  - id: "T-01"
+    type: happy-path
+    description: ".artifacts/VERIFY.md exists, is non-empty, is valid Markdown with a heading, and sits directly under .artifacts/"
+    result: pass
+
+  - id: "T-02"
+    type: non-happy-path
+    description: "git status --short is empty — no tracked file changed and the stub did not become stageable"
+    result: pass
+
+  - id: "T-03"
+    type: non-happy-path
+    description: "git check-ignore -v still matches .gitignore:10:.artifacts/; .gitignore is unchanged vs HEAD; no src/ directory was created"
+    result: pass
+
+commitHash: null
+commitMessage: null
+
+notes: |
+  Playwright/browser testing was skipped as not applicable — there is no running
+  application in this task. Commit fields are null because .artifacts/ is
+  gitignored (.gitignore line 10); nothing was committed and no hash was
+  invented. No pre-existing VERIFY.md was present, so this was a create, not
+  an overwrite. git status --short remained empty after both writes.

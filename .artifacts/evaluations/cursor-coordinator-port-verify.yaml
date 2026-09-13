@@ -1,0 +1,80 @@
+feature: cursor-coordinator-port-verify
+evaluatedAt: "2026-09-13T23:14:00Z"
+branch: cursor/main-session-coordinator-03b9
+commit: "02138b6"
+pr: "https://github.com/linusquan/agent-harness/pull/2"
+verdict: MEETS_WITH_GAPS
+
+spec:
+  1_main_session_is_coordinator:
+    result: PASS
+    evidence: "CLAUDE.md / AGENTS.md L3; README.md L31-51; coordinator.md L3"
+  2_working_subagents_only_pbc:
+    result: PASS
+    evidence: "CLAUDE.md L9-13; .cursor/agents/{planner,builder,checker}.md only; coordinator is alias"
+    note: "Cursor still lists coordinator as a visible subagent_type (G1)"
+  3_coordinator_behaviour_encoded:
+    result: PASS
+    evidence: "dispatch-only, plan-build-check, semiauto/auto, breaker=3, verbatim planner prompt, resume, no feature impl in main"
+  4_cursor_agent_mirrors:
+    result: PASS
+    evidence: ".cursor/agents/{planner,builder,checker}.md with name/description/model/readonly/is_background"
+  5_cursor_rule:
+    result: PASS
+    evidence: ".cursor/rules/abcd-coordinator.mdc alwaysApply: true"
+  6_thin_aliases:
+    result: PASS
+    evidence: "coordinator.md; .claude/agents/coordinator.md; start-coordinator.sh optional"
+  7_artifacts_and_skills_unchanged:
+    result: PASS
+    evidence: "git diff main...HEAD -- .claude/skills/ empty"
+  8_no_dispatch_poll_tmux_children:
+    result: PASS
+    evidence: "scripts/ has no dispatch.sh or poll.sh; mentions are prohibitions only"
+  9_readonly_writable_but_no_app_edits:
+    result: PASS
+    evidence: ".cursor/agents/planner.md L23 and checker.md L24 forbid application-source edits"
+
+behaviouralSmoke:
+  method: cursor_task_subagents
+  fallbackUsed: false
+  slug: cursor-port-smoke
+  taskVerbatim: "Create a VERIFY.md stub file under .artifacts/ only."
+  agentIds:
+    planner: bc-cae8f3bf-39ee-5a2e-8839-1b639ea700dc
+    builder: bc-d0b31a73-164d-5315-a494-549ef87a050d
+    checker: bc-316ffbed-626a-5eb3-84a2-0fc4ae15e1ae
+  smokeCheckerVerdict: pass
+  smokeScore: "58/60"
+  coordinatorEditedAppSource: false
+
+gaps:
+  - id: G1
+    severity: minor
+    summary: "coordinator still visible as a Cursor subagent via .claude/agents/coordinator.md"
+    fix: "Add .cursor/agents/coordinator.md override; rule: never subagent_type=coordinator"
+  - id: G2
+    severity: minor
+    summary: "Work on your own / Exceptions allow main-session edits and pipeline skip"
+    fix: "Narrow those sections in CLAUDE.md and AGENTS.md (keep twins in sync)"
+  - id: G3
+    severity: nit
+    summary: "Builder prompt example hardcodes Write code to src/"
+    fix: "Point at plan output paths instead"
+  - id: G4
+    severity: nit
+    summary: "Resume-on-re-dispatch specified but not exercised (smoke passed cycle 1)"
+    fix: "Optional README note on Task resume after failed check"
+
+scorecard:
+  itemsPassed: 9
+  itemsPartial: 0
+  itemsFailed: 0
+  residualGaps: 4
+
+summary: |
+  PR #2 makes the main session the ABCD coordinator in Claude Code and Cursor.
+  Cursor Task dispatch of planner → builder → checker succeeded for an
+  artifacts-only smoke. Residual gaps: coordinator still visible as a
+  subagent, main-session edit exceptions, src/ hardcoded in the builder
+  example, resume path untested.
