@@ -1,13 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./scripts/dispatch.sh:*)",
-      "Bash(./scripts/poll.sh:*)",
+      "Agent(planner)",
+      "Agent(builder)",
+      "Agent(checker)",
+      "Bash(./scripts/notify.sh:*)",
       "Bash(echo $HARNESS_MODE:*)",
       "Read(.artifacts/**)",
       "Read(roles/**)",
-      "Read(sessions/**)",
-      "Read(coordinator.md)"
+      "Read(.claude/agents/**)"
     ]
   },
   "hooks": {
@@ -33,13 +34,13 @@
         ]
       }
     ],
-    "Stop": [
+    "SubagentStop": [
       {
-        "matcher": "",
+        "matcher": "planner|builder|checker",
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/on-stop.sh",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/on-subagent-stop.sh",
             "timeout": 10
           }
         ]

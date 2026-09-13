@@ -1,12 +1,11 @@
 #!/bin/bash
-# Start the central coordinator agent session
-# Usage: ./start-coordinator.sh [--mode auto|semiauto] [--model <model>] [--agentbase claude|codex]
+# Start the central coordinator as a Claude Code session
+# Usage: ./start-coordinator.sh [--mode auto|semiauto] [--model <model>]
 set -euo pipefail
 
 # ── Defaults ──
 MODE="semiauto"
 MODEL="sonnet"
-AGENTBASE="${HARNESS_AGENTBASE:-claude}"
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -16,7 +15,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --mode)   MODE="$2"; shift 2 ;;
     --model)  MODEL="$2"; shift 2 ;;
-    --agentbase) AGENTBASE="$2"; shift 2 ;;
+    --agentbase)
+      echo "Error: Codex support was removed. This harness is Claude Code only." >&2
+      exit 1
+      ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
   esac
 done
@@ -26,57 +28,18 @@ if [[ "$MODE" != "auto" && "$MODE" != "semiauto" ]]; then
   exit 1
 fi
 
-if [[ "$AGENTBASE" != "claude" && "$AGENTBASE" != "codex" ]]; then
-  echo "Error: --agentbase must be 'claude' or 'codex'" >&2
-  exit 1
-fi
-
 # ── Functions ────────────────────────────────────────────────────────────────
 
-resolve_model() {
-  local runtime="$1"
-  local requested="$2"
-
-  if [[ "$runtime" == "codex" ]]; then
-    case "$requested" in
-      haiku|sonnet) echo "gpt-5.4-mini" ;;
-      opus) echo "gpt-5.4" ;;
-      *) echo "$requested" ;;
-    esac
-  else
-    echo "$requested"
-  fi
-}
-
-runtime_command_name() {
-  if [[ "$1" == "codex" ]]; then
-    echo "codex"
-  else
-    echo "claude"
-  fi
-}
-
-start_runtime_in_session() {
+start_claude_in_session() {
   local session_name="$1"
-  local runtime="$2"
-  local model="$3"
-  local resolved_model
-  resolved_model=$(resolve_model "$runtime" "$model")
+  local resume="${2:-}"
 
-  if [[ "$runtime" == "codex" ]]; then
-    local session_id_file="$PROJECT_DIR/sessions/$session_name.codex-session"
-    if [[ -f "$session_id_file" ]]; then
-      local resume_session_id
-      resume_session_id=$(cat "$session_id_file")
-      tmux send-keys -t "$session_name" \
-        "./scripts/run-codex-interactive.sh '$session_name' '$resolved_model' ./coordinator.md --resume-session '$resume_session_id'" Enter
-    else
-      tmux send-keys -t "$session_name" \
-        "./scripts/run-codex-interactive.sh '$session_name' '$resolved_model' ./coordinator.md" Enter
-    fi
+  if [[ -n "$resume" ]]; then
+    tmux send-keys -t "$session_name" \
+      "claude --model $MODEL --resume '$session_name' --agent coordinator" Enter
   else
     tmux send-keys -t "$session_name" \
-      "claude --model $resolved_model -n '$session_name' --append-system-prompt-file ./coordinator.md" Enter
+      "claude --model $MODEL -n '$session_name' --agent coordinator" Enter
   fi
 }
 
@@ -189,24 +152,8 @@ choose_coordinator() {
   else
     local chosen="${options[$selected]}"
     echo "Resuming session: $chosen"
-    local session_agentbase="$AGENTBASE"
-    local session_env
-    session_env=$(tmux show-environment -t "$chosen" HARNESS_AGENTBASE 2>/dev/null || true)
-    if [[ "$session_env" == HARNESS_AGENTBASE=* ]]; then
-      session_agentbase="${session_env#HARNESS_AGENTBASE=}"
-    fi
-
-    local runtime_cmd
-    runtime_cmd=$(runtime_command_name "$session_agentbase")
-    if ! tmux list-panes -t "$chosen" -F '#{pane_current_command}' 2>/dev/null | grep -q "^${runtime_cmd}$"; then
-      if [[ "$session_agentbase" == "codex" ]]; then
-        start_runtime_in_session "$chosen" "$session_agentbase" "$MODEL"
-      else
-        local resolved_model
-        resolved_model=$(resolve_model "$session_agentbase" "$MODEL")
-        tmux send-keys -t "$chosen" \
-          "claude --model $resolved_model --resume '$chosen' --append-system-prompt-file ./coordinator.md" Enter
-      fi
+    if ! tmux list-panes -t "$chosen" -F '#{pane_current_command}' 2>/dev/null | grep -q '^claude$'; then
+      start_claude_in_session "$chosen" resume
     fi
     tmux attach-session -t "$chosen"
   fi
@@ -218,15 +165,19 @@ create_new_coordinator() {
 
   echo "Creating session: $session_name (detach with Ctrl+b d to keep it alive)"
   tmux new-session -d -s "$session_name" -c "$PROJECT_DIR" \
-    -e "HARNESS_MODE=$MODE" \
-    -e "HARNESS_AGENTBASE=$AGENTBASE"
-  start_runtime_in_session "$session_name" "$AGENTBASE" "$MODEL"
+    -e "HARNESS_MODE=$MODE"
+  start_claude_in_session "$session_name"
   tmux attach-session -t "$session_name"
 }
 
 start_coordinator() {
   if ! command -v tmux &>/dev/null; then
     echo "Error: tmux is not installed" >&2
+    exit 1
+  fi
+
+  if ! command -v claude &>/dev/null; then
+    echo "Error: Claude Code CLI (claude) is not installed" >&2
     exit 1
   fi
 
@@ -242,7 +193,7 @@ start_coordinator() {
 
 start_artifact_browser
 
-# Kill the browser when this shell exits (tmux new-session blocks until session ends)
+# Kill the browser when this shell exits (tmux attach blocks until session ends)
 trap 'kill "$ARTIFACT_BROWSER_PID" 2>/dev/null || true' EXIT
 
 start_coordinator
