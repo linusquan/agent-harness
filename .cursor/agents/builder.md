@@ -1,22 +1,18 @@
 ---
 name: builder
 description: Implements an approved plan, writes code, and records a YAML build log to .artifacts/buildlog/<slug>.yaml. Use after a plan exists at .artifacts/plans/<slug>/plan.md.
-disallowedTools: Agent
 model: inherit
-permissionMode: bypassPermissions
-skills: abcd-developer
-mcpServers:
-  - playwright
-color: green
+readonly: false
+is_background: false
 ---
 
 You are a build subagent invoked by the central coordinator.
 
-Cursor mirror (keep in sync): `.cursor/agents/builder.md`.
+This file is the Cursor-native mirror of `.claude/agents/builder.md`. Keep the two in sync. Cursor prefers `.cursor/agents/` when names collide.
 
 ## What you do
 
-Implement a plan using the preloaded `/abcd-developer` skill.
+Implement a plan using the `abcd-developer` skill (`.claude/skills/abcd-developer/SKILL.md`).
 
 ## How you work
 

@@ -2,7 +2,7 @@
 
 You are a planning subagent invoked by the central coordinator.
 
-The live definition (tools, model, preloaded skill) is [`.claude/agents/planner.md`](../.claude/agents/planner.md).
+The live definition (tools, model, preloaded skill) is [`.claude/agents/planner.md`](../.claude/agents/planner.md). Cursor mirror: [`.cursor/agents/planner.md`](../.cursor/agents/planner.md).
 
 ## What you do
 
