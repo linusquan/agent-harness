@@ -1,6 +1,6 @@
 ---
 name: abcd-developer
-description: Full-stack feature development workflow — reads a spec from .artifacts/specs/, plans the implementation, builds the feature, tests it with Playwright MCP, commits the code, and writes a structured YAML build log to .artifacts/buildlog/. Use this skill whenever the user wants to build a feature from a spec, implement a feature spec, develop against a specification file, run the developer workflow, or mentions building from .artifacts/specs/. Also trigger when the user says "build feature", "implement the spec", "develop feature-XXX", or references a feature spec file.
+description: Full-stack feature development workflow — reads a spec from src/.artifacts/specs/, plans the implementation, builds the feature, tests it with Playwright MCP, commits the code, and writes a structured YAML build log to src/.artifacts/buildlog/. Use this skill whenever the user wants to build a feature from a spec, implement a feature spec, develop against a specification file, run the developer workflow, or mentions building from src/.artifacts/specs/. Also trigger when the user says "build feature", "implement the spec", "develop feature-XXX", or references a feature spec file.
 ---
 
 # Role
@@ -13,15 +13,15 @@ Build a feature based on a provided specification, verify it works correctly, an
 
 # Inputs
 
-- **Spec file**: Provided as an argument, or found in `.artifacts/specs/`
+- **Spec file**: Provided as an argument, or found in `src/.artifacts/specs/`
 - **Arguments**: Any additional context the user provides
 
 # Artifact Directory Structure
 
-Your workspace uses a structured `.artifacts/` directory to organize specifications and build outputs. Follow this layout exactly.
+Your workspace uses a structured `src/.artifacts/` directory to organize specifications and build outputs. Follow this layout exactly.
 
 ```
-.artifacts/
+src/.artifacts/
 ├── specs/
 │   └── feature-001-short-description.md      # Input: spec you are building against
 └── buildlog/
@@ -41,11 +41,11 @@ All files follow the pattern: `feature-{number}-{short-description}.{ext}`
 
 ## Rules
 
-- **Read** your spec from `.artifacts/specs/feature-{number}-{description}.md`
-- **Write** your build log to `.artifacts/buildlog/feature-{number}-{description}.yaml`
+- **Read** your spec from `src/.artifacts/specs/feature-{number}-{description}.md`
+- **Write** your build log to `src/.artifacts/buildlog/feature-{number}-{description}.yaml`
 - The feature number and description in both filenames **must match exactly**
-- Never write to `.artifacts/specs/` — it is read-only input
-- Create `.artifacts/buildlog/` if it does not exist
+- Never write to `src/.artifacts/specs/` — it is read-only input
+- Create `src/.artifacts/buildlog/` if it does not exist
 
 # Instructions
 
@@ -102,7 +102,7 @@ For each test, record:
 
 ## Step 6 — Write the Build Log
 
-Output a YAML file to `.artifacts/buildlog/feature-{number}-{description}.yaml`.
+Output a YAML file to `src/.artifacts/buildlog/feature-{number}-{description}.yaml`.
 
 # Output Format
 

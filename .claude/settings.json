@@ -6,7 +6,7 @@
       "Agent(checker)",
       "Bash(./scripts/notify.sh:*)",
       "Bash(echo $HARNESS_MODE:*)",
-      "Read(.artifacts/**)",
+      "Read(src/.artifacts/**)",
       "Read(roles/**)",
       "Read(.claude/agents/**)"
     ]

@@ -21,7 +21,7 @@ Parse the first argument:
 2. **Research** the codebase — read relevant files, search for patterns, understand the current state
 3. **Plan** — produce `plan.md` using the Autonomous Plan Format below
 4. **Supporting files** — create any additional files that strengthen the plan (schemas, diagrams, checklists — see examples below)
-5. **Save** everything to `{WORK_DIR}/.artifacts/plans/<slug>/` where `<slug>` is a short kebab-case descriptor (e.g. `add-oauth-support`, `fix-race-condition`)
+5. **Save** everything to `{WORK_DIR}/src/.artifacts/plans/<slug>/` where `<slug>` is a short kebab-case descriptor (e.g. `add-oauth-support`, `fix-race-condition`)
 6. **Summarize** — tell the user the plan is saved and give a brief overview
 7. **Stop** — do NOT execute. Wait for the user to approve before making any changes
 
@@ -39,7 +39,7 @@ Parse the first argument:
 4. **Research** the codebase using the answers to guide exploration
 5. **Plan** — produce `plan.md` using the Interactive Plan Format below
 6. **Supporting files** — create any additional files that strengthen the plan
-7. **Save** everything to `{WORK_DIR}/.artifacts/plans/<slug>/`
+7. **Save** everything to `{WORK_DIR}/src/.artifacts/plans/<slug>/`
 8. **Ask**: "Would you like to refine any part of this plan, or should I proceed with implementation?"
 9. **Iterate** — if the user gives feedback, revise the plan and overwrite the same files
 10. **Stop** — only proceed to implementation after explicit approval
@@ -153,7 +153,7 @@ Do NOT create supporting files just to have them. If the plan is simple, `plan.m
 ### Example 1: Feature — notification system
 
 ```
-{WORK_DIR}/.artifacts/plans/add-notifications/
+{WORK_DIR}/src/.artifacts/plans/add-notifications/
 ├── plan.md              # Main plan with phases
 ├── schema.sql           # Proposed database tables
 └── api-contract.md      # Endpoint specs (method, path, request/response shape)
@@ -162,7 +162,7 @@ Do NOT create supporting files just to have them. If the plan is simple, `plan.m
 ### Example 2: Refactor — extract auth module
 
 ```
-{WORK_DIR}/.artifacts/plans/extract-auth-module/
+{WORK_DIR}/src/.artifacts/plans/extract-auth-module/
 ├── plan.md              # Main plan with phases
 └── file-moves.md        # Table mapping old paths → new paths
 ```
@@ -170,14 +170,14 @@ Do NOT create supporting files just to have them. If the plan is simple, `plan.m
 ### Example 3: Bug fix — race condition in queue
 
 ```
-{WORK_DIR}/.artifacts/plans/fix-queue-race-condition/
+{WORK_DIR}/src/.artifacts/plans/fix-queue-race-condition/
 └── plan.md              # Simple plan, no supporting files needed
 ```
 
 ### Example 4: Migration — upgrade database ORM
 
 ```
-{WORK_DIR}/.artifacts/plans/upgrade-orm-v5/
+{WORK_DIR}/src/.artifacts/plans/upgrade-orm-v5/
 ├── plan.md              # Main plan with phases
 ├── breaking-changes.md  # List of breaking changes from changelog
 ├── migration-checklist.md  # File-by-file checklist of what to update
@@ -187,7 +187,7 @@ Do NOT create supporting files just to have them. If the plan is simple, `plan.m
 ### Example 5: Architecture — redesign data pipeline
 
 ```
-{WORK_DIR}/.artifacts/plans/redesign-data-pipeline/
+{WORK_DIR}/src/.artifacts/plans/redesign-data-pipeline/
 ├── plan.md              # Main plan with phases
 ├── architecture.mermaid # Diagram of new pipeline flow
 ├── data-flow.md         # Detailed description of each stage
@@ -197,7 +197,7 @@ Do NOT create supporting files just to have them. If the plan is simple, `plan.m
 ### Example 6: Infrastructure — add CI/CD pipeline
 
 ```
-{WORK_DIR}/.artifacts/plans/add-ci-cd/
+{WORK_DIR}/src/.artifacts/plans/add-ci-cd/
 ├── plan.md              # Main plan with phases
 ├── pipeline.yml         # Draft pipeline config
 └── env-vars.md          # Required environment variables and secrets
@@ -207,9 +207,9 @@ Do NOT create supporting files just to have them. If the plan is simple, `plan.m
 
 ## Rules
 
-- **No implementation during planning.** Read-only operations only: read files, search, list directories. Do not edit, create, or run anything that changes state outside `{WORK_DIR}/.artifacts/plans/`.
+- **No implementation during planning.** Read-only operations only: read files, search, list directories. Do not edit, create, or run anything that changes state outside `{WORK_DIR}/src/.artifacts/plans/`.
 - **Always save `plan.md`** before doing anything else.
 - **One plan per directory.** If revised, overwrite files in the same directory.
 - **Keep steps actionable.** Each step is a clear action, not a paragraph.
 - **Name directories descriptively.** `fix-auth-token-refresh` not `plan-1`.
-- **Create parent directories** if they don't exist (`{WORK_DIR}/.artifacts/plans/`).
+- **Create parent directories** if they don't exist (`{WORK_DIR}/src/.artifacts/plans/`).

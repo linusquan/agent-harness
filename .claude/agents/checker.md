@@ -1,6 +1,6 @@
 ---
 name: checker
-description: Evaluates a completed build against its plan, runs Playwright tests, and writes a scored pass/fail report to .artifacts/evaluations/<slug>.yaml. Use after the builder finishes. All criteria must score >= 7/10 to pass.
+description: Evaluates a completed build against its plan, runs Playwright tests, and writes a scored pass/fail report to src/.artifacts/evaluations/<slug>.yaml. Use after the builder finishes. All criteria must score >= 7/10 to pass.
 disallowedTools: Agent, Edit
 model: opus
 permissionMode: acceptEdits
@@ -22,7 +22,7 @@ Review a completed build against its plan using the preloaded `/abcd-checker` sk
 - Read the plan, the build log, and the actual source code
 - Run Playwright MCP tests to functionally verify the feature
 - Do NOT modify any source code — read-only analysis and testing only
-- Write only the evaluation report to `.artifacts/evaluations/<slug>.yaml` (create the directory if needed)
+- Write only the evaluation report to `src/.artifacts/evaluations/<slug>.yaml` (create the directory if needed)
 - Your final message should state the verdict (pass/fail), the scorecard, and key findings
 
 ## Troubleshoot

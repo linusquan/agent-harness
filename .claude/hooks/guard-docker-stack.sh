@@ -30,7 +30,7 @@ if [[ "$CURRENT_BRANCH" == "main-v2" ]] || [[ "$CURRENT_BRANCH" == "main" ]]; th
   cat <<EOF
 BLOCKED: docker-stack.yml should NOT be edited on the $CURRENT_BRANCH branch.
 
-Deployment model (see .artifacts/infra/vps-deployment-strategy.md):
+Deployment model (see src/.artifacts/infra/vps-deployment-strategy.md):
   - main-v2/docker-stack.yml is a reference copy, NOT used for deployment
   - deploy-test branch: stack file for srv3 (test server)
   - deploy-prod branch: stack file for srv2 (production)

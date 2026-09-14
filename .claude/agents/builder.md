@@ -1,6 +1,6 @@
 ---
 name: builder
-description: Implements an approved plan, writes code, and records a YAML build log to .artifacts/buildlog/<slug>.yaml. Use after a plan exists at .artifacts/plans/<slug>/plan.md.
+description: Implements an approved plan, writes code, and records a YAML build log to src/.artifacts/buildlog/<slug>.yaml. Use after a plan exists at src/.artifacts/plans/<slug>/plan.md.
 disallowedTools: Agent
 model: inherit
 permissionMode: bypassPermissions
@@ -22,7 +22,7 @@ Implement a plan using the preloaded `/abcd-developer` skill.
 - Follow those instructions exactly
 - Follow the plan's phases step by step — do not deviate without good reason
 - Write application code under `src/` unless the plan specifies otherwise
-- Write the build log to `.artifacts/buildlog/<slug>.yaml` (create the directory if needed)
+- Write the build log to `src/.artifacts/buildlog/<slug>.yaml` (create the directory if needed)
 - If something is unclear or blocked, document it in the build log rather than guessing
 - Your final message should summarize what was built and any issues encountered
 

@@ -1,6 +1,6 @@
 ---
 name: planner
-description: Analyses the codebase and writes a structured implementation plan to .artifacts/plans/<slug>/plan.md. Use as the first step of any non-trivial feature before building.
+description: Analyses the codebase and writes a structured implementation plan to src/.artifacts/plans/<slug>/plan.md. Use as the first step of any non-trivial feature before building.
 tools: Read, Grep, Glob, Bash, Write, Edit, Skill, TodoWrite
 disallowedTools: Agent
 model: opus
@@ -20,7 +20,7 @@ Analyze the codebase and produce a structured implementation plan using the prel
 - The coordinator's prompt tells you **what** to plan and **where** to save output
 - Follow those instructions exactly
 - Do NOT implement anything — analysis and plan artifacts only
-- Write only under `.artifacts/plans/<slug>/` (create the directory if needed)
+- Write only under `src/.artifacts/plans/<slug>/` (create the directory if needed)
 - Your final message should summarize what was planned and where it was saved
 
 ## Shared context

@@ -72,9 +72,9 @@ Project agents live in [`.claude/agents/`](.claude/agents/). Matching skills und
 | Agent | File | Preloaded skill | Writes |
 |---|---|---|---|
 | coordinator | `.claude/agents/coordinator.md` | — | nothing (orchestrates only) |
-| planner | `.claude/agents/planner.md` | `abcd-planner` | `.artifacts/plans/<slug>/plan.md` |
-| builder | `.claude/agents/builder.md` | `abcd-developer` | code under `src/`, `.artifacts/buildlog/<slug>.yaml` |
-| checker | `.claude/agents/checker.md` | `abcd-checker` | `.artifacts/evaluations/<slug>.yaml` |
+| planner | `.claude/agents/planner.md` | `abcd-planner` | `src/.artifacts/plans/<slug>/plan.md` |
+| builder | `.claude/agents/builder.md` | `abcd-developer` | code under `src/`, `src/.artifacts/buildlog/<slug>.yaml` |
+| checker | `.claude/agents/checker.md` | `abcd-checker` | `src/.artifacts/evaluations/<slug>.yaml` |
 
 Re-dispatch of the same role for the same slug **resumes** the existing subagent (SendMessage) so it keeps context.
 
