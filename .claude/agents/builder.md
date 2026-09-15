@@ -3,7 +3,7 @@ name: builder
 description: Implements an approved plan, writes code, and records a YAML build log to src/.artifacts/buildlog/<slug>.yaml. Use after a plan exists at src/.artifacts/plans/<slug>/plan.md.
 disallowedTools: Agent
 model: inherit
-permissionMode: bypassPermissions
+permissionMode: auto
 skills: abcd-developer
 mcpServers:
   - playwright

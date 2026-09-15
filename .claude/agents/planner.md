@@ -4,7 +4,7 @@ description: Analyses the codebase and writes a structured implementation plan t
 tools: Read, Grep, Glob, Bash, Write, Edit, Skill, TodoWrite
 disallowedTools: Agent
 model: opus
-permissionMode: acceptEdits
+permissionMode: auto
 skills: abcd-planner
 color: blue
 ---

@@ -2,8 +2,8 @@
 name: checker
 description: Evaluates a completed build against its plan, runs Playwright tests, and writes a scored pass/fail report to src/.artifacts/evaluations/<slug>.yaml. Use after the builder finishes. All criteria must score >= 7/10 to pass.
 disallowedTools: Agent, Edit
-model: opus
-permissionMode: acceptEdits
+model: sonnet
+permissionMode: auto
 skills: abcd-checker
 mcpServers:
   - playwright
