@@ -1,2 +1,2 @@
 #!/bin/bash
-claude --agents coordinator
+claude --agent coordinator "$@"

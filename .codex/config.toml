@@ -1,0 +1,14 @@
+# Project settings for the ABCD Codex harness.
+sandbox_mode = "workspace-write"
+approval_policy = "never"
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["@playwright/mcp@latest", "--browser", "chromium", "--output-dir", ".tmp/playwright-site-inspector"]
+
+[mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"

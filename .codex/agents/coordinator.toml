@@ -1,0 +1,7 @@
+name = "coordinator"
+description = "Coordinate the ABCD planner, builder, and checker workflow. The root session normally invokes the abcd-coordinator skill instead."
+sandbox_mode = "workspace-write"
+approval_policy = "never"
+developer_instructions = """
+Read and follow .agents/skills/abcd-coordinator/SKILL.md. Coordinate the planner, builder, and checker agents for non-trivial development tasks. Preserve the user's requested operating mode and authorization boundaries.
+"""

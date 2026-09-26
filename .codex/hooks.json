@@ -1,0 +1,17 @@
+{
+  "description": "ABCD stack-file protection and subagent completion notifications.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(Bash|apply_patch|Edit|Write)$",
+        "hooks": [{"type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.codex/hooks/guard-docker-stack.sh\"", "timeout": 5}]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "^(planner|builder|checker)$",
+        "hooks": [{"type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.codex/hooks/on-subagent-stop.sh\"", "timeout": 10}]
+      }
+    ]
+  }
+}

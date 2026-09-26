@@ -4,6 +4,16 @@
 
 A multi-agent orchestration harness for Claude Code. A central coordinator session delegates to official project subagents via the Agent tool, then loops until the feature passes evaluation.
 
+The repository also includes a Codex version of the same workflow. Start it with `./start-codex-coordinator.sh` (or `./start-codex-coordinator.sh --mode auto`). The Claude launcher and `.claude/` files remain available.
+
+## Codex setup
+
+- Install the [Codex CLI](https://learn.chatgpt.com/docs/developer-commands), then run `./start-codex-coordinator.sh` from this repository. The launcher starts Codex with `--sandbox workspace-write --ask-for-approval never`; the project config and agent profiles use the same settings. Add `--model <model>` or other Codex CLI flags as needed.
+- The launcher invokes `$abcd-coordinator` in an interactive Codex session. `--mode semiauto` is the default; `--mode auto` runs the full plan → build → check loop without phase checkpoints. You can switch by saying `auto` or `semiauto` during the chat.
+- Project agent profiles are in [`.codex/agents/`](.codex/agents/), and the four workflow skills are in [`.agents/skills/`](.agents/skills/). The Playwright MCP server and subagent settings are in [`.codex/config.toml`](.codex/config.toml).
+- Project hooks are in [`.codex/hooks.json`](.codex/hooks.json). Codex requires you to review and trust new or changed hooks with `/hooks` before they run. The stack guard watches edits to `src/docker-stack.yml` on `main` and `main-v2`; the completion hook sends the same `ntfy` messages as the Claude harness.
+- The Codex launcher requests one child page per feature under [Engineering Work Artifacts](https://app.notion.com/p/Engineering-Work-Artifacts-3e63381a46dd8009a5c4f439abd54345) for the plan, build log, and evaluation. The Claude workflow stores them in `.artifacts/` at the harness root (not under `src/`). For Codex CLI, connect the configured Notion MCP server with `codex mcp login notion` before running the workflow. The nested `src/` repository has its own [instructions](src/AGENTS.md).
+
 ```
                  ┌──────────────┐
                  │  A: Architect│
@@ -72,9 +82,9 @@ Project agents live in [`.claude/agents/`](.claude/agents/). Matching skills und
 | Agent | File | Preloaded skill | Writes |
 |---|---|---|---|
 | coordinator | `.claude/agents/coordinator.md` | — | nothing (orchestrates only) |
-| planner | `.claude/agents/planner.md` | `abcd-planner` | `src/.artifacts/plans/<slug>/plan.md` |
-| builder | `.claude/agents/builder.md` | `abcd-developer` | code under `src/`, `src/.artifacts/buildlog/<slug>.yaml` |
-| checker | `.claude/agents/checker.md` | `abcd-checker` | `src/.artifacts/evaluations/<slug>.yaml` |
+| planner | `.claude/agents/planner.md` | `abcd-planner` | `.artifacts/plans/<slug>/plan.md` |
+| builder | `.claude/agents/builder.md` | `abcd-developer` | code under `src/`, `.artifacts/buildlog/<slug>.yaml` |
+| checker | `.claude/agents/checker.md` | `abcd-checker` | `.artifacts/evaluations/<slug>.yaml` |
 
 Re-dispatch of the same role for the same slug **resumes** the existing subagent (SendMessage) so it keeps context.
 

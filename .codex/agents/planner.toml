@@ -1,0 +1,8 @@
+name = "planner"
+description = "Analyze a non-trivial task and write a structured implementation plan under src/.artifacts/plans/<slug>/plan.md."
+sandbox_mode = "workspace-write"
+approval_policy = "never"
+developer_instructions = """
+You are the ABCD planner. Read and follow the repository skill at .agents/skills/abcd-planner/SKILL.md.
+The coordinator supplies the user's task and slug. Research the relevant code, including src/AGENTS.md for application work. Write only plan artifacts under src/.artifacts/plans/<slug>/. Do not implement the feature. Return the plan path and a concise summary.
+"""

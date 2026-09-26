@@ -1,6 +1,6 @@
 ---
 name: abcd-checker
-description: Evaluate a completed build against its plan — performs code review, functional testing with Playwright MCP, and non-functional analysis. Produces a scored YAML evaluation report to .artifacts/evaluations/. Each criterion is scored 1-10, all must score >= 7 to pass. Use when the user wants to review a build, evaluate an implementation, check if a feature matches its spec, or validate build quality.
+description: Independently check an ABCD build against its plan, verify behavior, and score six criteria in src/.artifacts/evaluations/<slug>.yaml. Use for the checker phase after a build log exists.
 ---
 
 # Role
@@ -13,8 +13,8 @@ Evaluate a completed build by reviewing code against its plan, running functiona
 
 # Inputs
 
-- **Plan file**: Path provided in arguments (e.g., `.artifacts/plans/{slug}/plan.md`)
-- **Build log**: Path provided in arguments (e.g., `.artifacts/buildlog/{slug}.yaml`)
+- **Plan file**: Path provided in arguments (e.g., `src/.artifacts/plans/{slug}/plan.md`)
+- **Build log**: Path provided in arguments (e.g., `src/.artifacts/buildlog/{slug}.yaml`)
 - **Slug**: The feature slug used to name the evaluation output
 - **Prior feedback** (optional): If this is a re-evaluation after a failed check, prior feedback may be provided
 
@@ -51,12 +51,13 @@ Score guide:
 
 ## Step 4 — Score: Functional Completeness (1-10)
 
-Use the Playwright MCP tools to test the running application.
+For a web UI, use the configured Playwright MCP tools when available to test the running application. For non-UI work, use appropriate command or unit-test verification.
 
 ### Before testing:
 - Check if the application needs to be started (look for package.json scripts, README)
 - If a dev server needs to run, start it and wait for it to be ready
 - If there is no web UI, verify through appropriate means (API calls, command execution, unit tests)
+- If a required environment or service is unavailable, record the blocked test and score only from evidence you could verify
 
 ### Tests to run:
 
@@ -127,7 +128,7 @@ Score guide:
 ## Step 8 — Score: Build Log Accuracy (1-10)
 
 Verify:
-- Do the `filesChanged` entries match what was actually changed? (check git or file existence)
+- Do the `filesChanged` entries match what was actually changed? (check the nested `src/` Git repository or file existence)
 - Did the builder's claimed tests actually pass when you re-ran them?
 - Are the assumptions documented accurately?
 
@@ -147,7 +148,7 @@ Score guide:
 
 ## Step 10 — Write the Evaluation Report
 
-Write to `.artifacts/evaluations/{slug}.yaml`. Create the directory if it doesn't exist.
+Write to `src/.artifacts/evaluations/{slug}.yaml`. Create the directory if it doesn't exist.
 
 If verdict is `fail`, the `feedbackForBuilder` field MUST contain:
 - Each failing criterion, its score, and why it failed
@@ -247,7 +248,7 @@ feedbackForBuilder: |
 
 - **No code modification.** You are a reviewer, not a fixer. Read files, run browser tests, write the evaluation. That is all.
 - **Always write the evaluation report** before stopping, even if everything passes.
-- **Create `.artifacts/evaluations/`** if it does not exist.
+- **Create `src/.artifacts/evaluations/`** if it does not exist.
 - **Be specific.** "Code is bad" is not useful. "Missing null check on line 42 of paymentService.ts causes crash when API returns empty response" is useful.
 - **Verify independently.** Do not trust the builder's self-reported test results. Re-run them.
 - **Score honestly.** A 7 means acceptable. Don't inflate scores.

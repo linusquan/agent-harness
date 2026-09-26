@@ -1,7 +1,7 @@
 ---
 name: coordinator
 description: Central ABCD orchestrator. Start the main session with `claude --agent coordinator`. Delegates to planner, builder, and checker via the Agent tool. Do not use for implementation yourself.
-tools: Agent(planner, builder, checker), Read, Grep, Glob, Bash, Write, Edit, SendMessage, TodoWrite
+tools: Agent(planner, builder, checker), Read, Grep, Glob, Bash, Write, Edit, SendMessage, TodoWrite, mcp__notion
 model: inherit
 color: purple
 ---
